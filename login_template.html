@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>BIST 100 Finansal Radar · Yatırımcı Girişi</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg-0: #04101a; --bg-1: #071a29;
+    --glass: linear-gradient(150deg, rgba(151,222,255,.10), rgba(151,222,255,.03) 45%, rgba(20,60,90,.06));
+    --stroke: rgba(140,220,255,.18);
+    --ink: #eaf6ff; --ink-2: #9fc2d8; --muted: #628aa3;
+    --cyan: #2de2ff; --lime: #c8f542; --red: #ff6b7a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; display: grid; place-items: center;
+    color: var(--ink); font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background:
+      radial-gradient(1000px 600px at 80% -10%, rgba(45,226,255,.14), transparent 60%),
+      radial-gradient(900px 700px at -10% 40%, rgba(18,168,207,.10), transparent 55%),
+      radial-gradient(700px 500px at 60% 110%, rgba(200,245,66,.06), transparent 60%),
+      linear-gradient(180deg, var(--bg-1), var(--bg-0) 45%);
+    padding: 24px;
+  }
+  .rings { position: fixed; top: -220px; right: -140px; width: 640px; height: 640px; pointer-events: none; opacity: .45; }
+  .card {
+    position: relative; z-index: 1; width: 100%; max-width: 400px;
+    background: var(--glass); border: 1px solid var(--stroke); border-radius: 20px;
+    backdrop-filter: blur(20px) saturate(140%); -webkit-backdrop-filter: blur(20px) saturate(140%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.09), 0 24px 60px rgba(0,8,16,.6);
+    padding: 34px 32px 30px;
+  }
+  .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+  .logo svg { width: 40px; height: 40px; filter: drop-shadow(0 0 8px rgba(45,226,255,.5)); }
+  h1 { font-size: 20px; margin: 0; font-weight: 800; letter-spacing: -.01em; }
+  h1 .hl { background: linear-gradient(90deg, var(--cyan), var(--lime)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .sub { color: var(--ink-2); font-size: 13px; margin: 4px 0 24px; }
+  label { display: block; font-size: 12px; color: var(--ink-2); margin: 14px 0 6px; letter-spacing: .04em; }
+  input {
+    width: 100%; background: rgba(4,16,26,.55); border: 1px solid var(--stroke);
+    color: var(--ink); border-radius: 12px; padding: 12px 14px; font: inherit; font-size: 14px;
+  }
+  input::placeholder { color: var(--muted); }
+  input:focus-visible { outline: 2px solid var(--cyan); border-color: transparent; }
+  button {
+    width: 100%; margin-top: 22px; padding: 13px; font: inherit; font-weight: 800; letter-spacing: .02em;
+    color: #06131f; background: linear-gradient(90deg, var(--cyan), var(--lime));
+    border: none; border-radius: 12px; cursor: pointer;
+  }
+  button:hover { filter: brightness(1.08); box-shadow: 0 0 24px rgba(45,226,255,.35); }
+  button:disabled { opacity: .6; cursor: wait; }
+  button:focus-visible { outline: 2px solid var(--ink); }
+  .err { color: var(--red); font-size: 13px; margin-top: 14px; min-height: 18px; }
+  .note { color: var(--muted); font-size: 11.5px; margin-top: 18px; line-height: 1.6; }
+  .lock { display: inline-block; margin-right: 5px; }
+</style>
+</head>
+<body>
+<svg class="rings" viewBox="0 0 640 640" aria-hidden="true">
+  <g fill="none" stroke="rgba(45,226,255,.15)">
+    <circle cx="320" cy="320" r="110"/><circle cx="320" cy="320" r="190"/><circle cx="320" cy="320" r="270"/>
+    <line x1="320" y1="10" x2="320" y2="630"/><line x1="10" y1="320" x2="630" y2="320"/>
+  </g>
+  <path d="M320,320 L320,40 A280,280 0 0 1 518,122 Z" fill="rgba(45,226,255,.05)"/>
+</svg>
+
+<main class="card">
+  <div class="logo">
+    <svg viewBox="0 0 40 40" aria-hidden="true">
+      <circle cx="20" cy="20" r="16" fill="none" stroke="#2de2ff" stroke-width="2" opacity=".5"/>
+      <circle cx="20" cy="20" r="9" fill="none" stroke="#2de2ff" stroke-width="2" opacity=".8"/>
+      <line x1="20" y1="20" x2="31" y2="9" stroke="#c8f542" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="20" cy="20" r="2.6" fill="#c8f542"/>
+    </svg>
+    <h1>BIST <span class="hl">100</span> Finansal Radar</h1>
+  </div>
+  <p class="sub">Yatırımcı girişi — erişim davetlidir</p>
+  <form id="f" novalidate>
+    <label for="em">E-posta</label>
+    <input id="em" type="email" autocomplete="username" placeholder="ornek@eposta.com" required>
+    <label for="pw">Şifre</label>
+    <input id="pw" type="password" autocomplete="current-password" placeholder="••••••••••" required>
+    <button id="btn" type="submit">Giriş Yap</button>
+    <div class="err" id="err" role="alert"></div>
+  </form>
+  <p class="note"><span class="lock">🔒</span>Pano içeriği AES-256-GCM ile şifrelidir ve yalnızca doğru e-posta + şifre ile tarayıcınızda çözülür.
+  Erişim talebi için panoyu sizinle paylaşan kişiyle iletişime geçin.</p>
+</main>
+
+<script>
+const USERS = __USERS__;
+const EMAIL_SALT = "__EMAIL_SALT__";
+const PAYLOAD = { iv: "__P_IV__", ct: "__P_CT__" };
+const PBKDF2_ITERS = 310000;
+
+const b64d = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+const b64e = a => btoa(String.fromCharCode(...new Uint8Array(a)));
+const te = new TextEncoder();
+
+async function sha256hex(bytes) {
+  const h = await crypto.subtle.digest("SHA-256", bytes);
+  return [...new Uint8Array(h)].map(b => b.toString(16).padStart(2, "0")).join("");
+}
+async function uidFor(email) {
+  const es = b64d(EMAIL_SALT);
+  const em = te.encode(email.trim().toLowerCase());
+  const buf = new Uint8Array(es.length + em.length);
+  buf.set(es); buf.set(em, es.length);
+  return (await sha256hex(buf)).slice(0, 24);
+}
+async function deriveKek(password, saltB64) {
+  const base = await crypto.subtle.importKey("raw", te.encode(password), "PBKDF2", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey(
+    { name: "PBKDF2", salt: b64d(saltB64), iterations: PBKDF2_ITERS, hash: "SHA-256" },
+    base, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
+}
+async function decryptPayload(masterRaw) {
+  const key = await crypto.subtle.importKey("raw", masterRaw, "AES-GCM", false, ["decrypt"]);
+  const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv: b64d(PAYLOAD.iv) }, key, b64d(PAYLOAD.ct));
+  return new TextDecoder().decode(pt);
+}
+function boot(html) {
+  document.open(); document.write(html); document.close();
+}
+/* resume within the same tab session */
+(async () => {
+  const saved = sessionStorage.getItem("radarKey");
+  if (!saved) return;
+  try { boot(await decryptPayload(b64d(saved))); } catch (e) { sessionStorage.removeItem("radarKey"); }
+})();
+
+document.getElementById("f").addEventListener("submit", async e => {
+  e.preventDefault();
+  const err = document.getElementById("err"), btn = document.getElementById("btn");
+  err.textContent = "";
+  const email = document.getElementById("em").value, pw = document.getElementById("pw").value;
+  if (!email || !pw) { err.textContent = "E-posta ve şifre gerekli."; return; }
+  btn.disabled = true; btn.textContent = "Doğrulanıyor…";
+  try {
+    const uid = await uidFor(email);
+    const rec = USERS[uid];
+    if (!rec) throw new Error("no-user");
+    const kek = await deriveKek(pw.trim(), rec.s);
+    const master = await crypto.subtle.decrypt({ name: "AES-GCM", iv: b64d(rec.i) }, kek, b64d(rec.w));
+    sessionStorage.setItem("radarKey", b64e(master));
+    boot(await decryptPayload(new Uint8Array(master)));
+  } catch (ex) {
+    err.textContent = "E-posta veya şifre hatalı.";
+    btn.disabled = false; btn.textContent = "Giriş Yap";
+  }
+});
+</script>
+</body>
+</html>

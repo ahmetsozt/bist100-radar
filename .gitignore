@@ -1,0 +1,7 @@
+# SIRLAR — asla commit etme
+users.json
+
+# düz metin pano (şifresiz içerik repoya girmez)
+bist100_dashboard.html
+*.secret
+.DS_Store

@@ -1,0 +1,948 @@
+<meta charset="utf-8">
+<title>BIST 100 Finansal Radar</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg-0: #04101a;
+    --bg-1: #071a29;
+    --glass: linear-gradient(150deg, rgba(151,222,255,.09), rgba(151,222,255,.025) 45%, rgba(20,60,90,.06));
+    --glass-strong: linear-gradient(150deg, rgba(151,222,255,.14), rgba(151,222,255,.04));
+    --stroke: rgba(140,220,255,.16);
+    --stroke-soft: rgba(140,220,255,.09);
+    --ink: #eaf6ff;
+    --ink-2: #9fc2d8;
+    --muted: #628aa3;
+    --cyan: #2de2ff;
+    --cyan-deep: #12a8cf;
+    --lime: #c8f542;
+    --amber: #ffc857;
+    --red: #ff6b7a;
+    --pos: #4ade80;
+    --grid: rgba(140,220,255,.10);
+    --glow-cyan: 0 0 18px rgba(45,226,255,.35);
+    --glow-lime: 0 0 18px rgba(200,245,66,.35);
+    --r: 16px;
+  }
+  * { box-sizing: border-box; }
+  html { scrollbar-color: rgba(140,220,255,.25) transparent; }
+  body {
+    margin: 0; color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 14px; line-height: 1.45;
+    background:
+      radial-gradient(1100px 600px at 85% -10%, rgba(45,226,255,.13), transparent 60%),
+      radial-gradient(900px 700px at -10% 30%, rgba(18,168,207,.10), transparent 55%),
+      radial-gradient(800px 600px at 70% 110%, rgba(200,245,66,.05), transparent 60%),
+      linear-gradient(180deg, var(--bg-1), var(--bg-0) 40%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+  /* faint radar rings behind header */
+  .radar-bg {
+    position: fixed; top: -260px; right: -160px; width: 720px; height: 720px;
+    pointer-events: none; opacity: .5; z-index: 0;
+  }
+  .app { position: relative; z-index: 1; display: grid; grid-template-columns: 62px 1fr; min-height: 100vh; }
+
+  /* ---- side rail ---- */
+  .rail {
+    border-right: 1px solid var(--stroke-soft);
+    background: linear-gradient(180deg, rgba(151,222,255,.05), transparent);
+    display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 0;
+    position: sticky; top: 0; height: 100vh;
+  }
+  .logo { width: 38px; height: 38px; margin-bottom: 18px; filter: drop-shadow(0 0 8px rgba(45,226,255,.5)); }
+  .rail button {
+    width: 40px; height: 40px; border-radius: 12px; border: 1px solid transparent;
+    background: transparent; color: var(--muted); cursor: pointer; display: grid; place-items: center;
+  }
+  .rail button svg { width: 19px; height: 19px; }
+  .rail button:hover { color: var(--cyan); background: rgba(45,226,255,.08); }
+  .rail button.active { color: var(--lime); border-color: var(--stroke); background: var(--glass-strong); box-shadow: var(--glow-lime), inset 0 1px 0 rgba(255,255,255,.08); }
+  .rail button:focus-visible { outline: 2px solid var(--cyan); }
+  @media (max-width: 820px) { .app { grid-template-columns: 1fr; } .rail { display: none; } }
+
+  .main { padding: 22px 26px 60px; max-width: 1440px; width: 100%; margin: 0 auto; min-width: 0; }
+
+  /* ---- header ---- */
+  .top { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .top h1 { margin: 0; font-size: clamp(22px, 3vw, 32px); font-weight: 800; letter-spacing: -0.02em; }
+  .top h1 .hl { background: linear-gradient(90deg, var(--cyan), var(--lime)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .meta { color: var(--ink-2); font-size: 13px; display: flex; align-items: center; gap: 8px; flex-basis: 100%; }
+  .meta .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--lime); box-shadow: var(--glow-lime); }
+  .pill {
+    margin-left: auto; display: flex; align-items: center; gap: 8px;
+    background: var(--glass); border: 1px solid var(--stroke); border-radius: 12px;
+    padding: 8px 14px; font-weight: 700; font-variant-numeric: tabular-nums;
+    backdrop-filter: blur(14px);
+  }
+  .pill .lbl { color: var(--cyan); font-size: 12px; font-weight: 700; letter-spacing: .05em; }
+  .avatar {
+    width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center;
+    font-size: 13px; font-weight: 800; color: var(--bg-0);
+    background: linear-gradient(135deg, var(--cyan), var(--lime));
+    box-shadow: var(--glow-cyan);
+  }
+
+  /* ---- tabs ---- */
+  .tabs { display: flex; gap: 22px; margin: 18px 0 20px; border-bottom: 1px solid var(--stroke-soft); overflow-x: auto; }
+  .tabs button {
+    background: none; border: none; color: var(--ink-2); font: inherit; font-weight: 600;
+    padding: 10px 2px 12px; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap;
+  }
+  .tabs button:hover { color: var(--ink); }
+  .tabs button.active { color: var(--lime); border-bottom-color: var(--lime); text-shadow: 0 0 12px rgba(200,245,66,.5); }
+  .tabs button:focus-visible { outline: 2px solid var(--cyan); outline-offset: -2px; }
+
+  /* ---- glass card ---- */
+  .card {
+    background: var(--glass);
+    border: 1px solid var(--stroke);
+    border-radius: var(--r);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 10px 34px rgba(0,10,20,.45);
+  }
+
+  /* ---- KPI row ---- */
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+  .kpi { padding: 16px 18px 14px; position: relative; overflow: hidden; }
+  .kpi .lbl { color: var(--ink-2); font-size: 13px; }
+  .kpi .val { font-size: 30px; font-weight: 800; letter-spacing: -0.01em; margin: 4px 0 2px; font-variant-numeric: tabular-nums; }
+  .kpi .sub { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+  .kpi .sub .arr { color: var(--pos); }
+  .kpi .sub .arr.down { color: var(--red); }
+  .kpi svg.spark { position: absolute; right: 12px; top: 34px; opacity: .95; }
+
+  /* ---- overview layout ---- */
+  .ov { display: grid; grid-template-columns: minmax(0, 1fr) 350px; gap: 14px; margin-top: 14px; align-items: start; }
+  @media (max-width: 1080px) { .ov { grid-template-columns: 1fr; } }
+
+  .list-card { min-width: 0; }
+  .list-head { display: flex; align-items: center; gap: 12px; padding: 16px 18px 12px; flex-wrap: wrap; }
+  .list-head h2 { margin: 0; font-size: 17px; }
+  .search {
+    margin-left: auto; background: rgba(4,16,26,.5); border: 1px solid var(--stroke);
+    color: var(--ink); border-radius: 10px; padding: 8px 12px; font: inherit; font-size: 13px; width: 220px;
+  }
+  .search::placeholder { color: var(--muted); }
+  .search:focus-visible, select:focus-visible { outline: 2px solid var(--cyan); }
+  .scroller { overflow: auto; max-height: 560px; border-top: 1px solid var(--stroke-soft); }
+  table { border-collapse: collapse; width: 100%; }
+  thead th {
+    position: sticky; top: 0; z-index: 2; text-align: right;
+    background: rgba(7,26,41,.92); backdrop-filter: blur(8px);
+    color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .07em;
+    padding: 9px 12px; border-bottom: 1px solid var(--stroke-soft); white-space: nowrap; font-weight: 600;
+  }
+  thead th.l { text-align: left; }
+  th.sortable { cursor: pointer; }
+  th.sortable:hover { color: var(--ink); }
+  th.sorted { color: var(--cyan); }
+  tbody td { padding: 9px 12px; text-align: right; border-bottom: 1px solid var(--stroke-soft); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  tbody td.l { text-align: left; }
+  tbody tr { cursor: pointer; }
+  tbody tr:hover { background: rgba(45,226,255,.06); }
+  tbody tr.sel { background: rgba(45,226,255,.10); box-shadow: inset 3px 0 0 var(--cyan); }
+  .tcode { font-weight: 800; letter-spacing: .02em; }
+  .tname { color: var(--ink-2); font-size: 12px; max-width: 190px; overflow: hidden; text-overflow: ellipsis; }
+  .pos { color: var(--pos); font-weight: 600; }
+  .neg { color: var(--red); font-weight: 600; }
+  .na { color: var(--muted); }
+
+  .ring { display: inline-grid; place-items: center; position: relative; width: 40px; height: 40px; }
+  .ring svg { position: absolute; inset: 0; }
+  .ring b { font-size: 12px; font-weight: 800; }
+
+  /* ---- company panel ---- */
+  .co { padding: 18px 18px 16px; position: sticky; top: 16px; }
+  .co-head { display: flex; align-items: flex-start; gap: 10px; }
+  .co-head h3 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -.01em; }
+  .co-head .nm { color: var(--ink-2); font-size: 12.5px; margin-top: 2px; max-width: 200px; }
+  .chip {
+    margin-left: auto; border: 1px solid var(--lime); color: var(--lime); border-radius: 8px;
+    font-size: 11px; font-weight: 700; padding: 3px 8px; letter-spacing: .04em; white-space: nowrap;
+  }
+  .score-row { display: flex; align-items: center; gap: 14px; margin: 12px 0 4px; }
+  .score-big { font-size: 44px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+  .score-big small { font-size: 15px; color: var(--muted); font-weight: 600; }
+  .facts { width: 100%; border-collapse: collapse; margin-top: 12px; }
+  .facts td { padding: 8px 0; border-bottom: 1px solid var(--stroke-soft); font-variant-numeric: tabular-nums; }
+  .facts tr:last-child td { border-bottom: none; }
+  .facts td:first-child { color: var(--ink-2); text-align: left; }
+  .facts td:last-child { text-align: right; font-weight: 700; }
+  .facts .ic { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; background: rgba(45,226,255,.10); color: var(--cyan); margin-right: 8px; vertical-align: -6px; }
+  .facts .ic svg { width: 12px; height: 12px; }
+  .cta {
+    width: 100%; margin-top: 16px; padding: 12px; font: inherit; font-weight: 800; cursor: pointer;
+    color: var(--lime); background: rgba(200,245,66,.07); border: 1px solid var(--lime); border-radius: 12px;
+    letter-spacing: .02em;
+  }
+  .cta:hover { background: rgba(200,245,66,.15); box-shadow: var(--glow-lime); }
+  .cta:focus-visible { outline: 2px solid var(--cyan); }
+  .trend-title { font-size: 13.5px; font-weight: 700; margin: 14px 0 4px; }
+
+  /* ---- companies (full) view ---- */
+  .filters { display: flex; gap: 10px; align-items: center; padding: 16px 18px 12px; flex-wrap: wrap; }
+  .filters select {
+    background: rgba(4,16,26,.5); color: var(--ink); border: 1px solid var(--stroke);
+    border-radius: 10px; padding: 8px 12px; font: inherit; font-size: 13px;
+  }
+  .count-note { color: var(--muted); font-size: 12px; margin-left: auto; }
+  .sparkcell { padding-top: 5px !important; padding-bottom: 3px !important; }
+
+  /* ---- compare view ---- */
+  .cmp-pick { display: flex; gap: 10px; align-items: center; padding: 16px 18px; flex-wrap: wrap; }
+  .cmp-chip {
+    display: inline-flex; align-items: center; gap: 7px; padding: 6px 10px; border-radius: 10px;
+    border: 1px solid var(--cyan); color: var(--cyan); font-weight: 700; font-size: 13px;
+  }
+  .cmp-chip button { background: none; border: none; color: inherit; cursor: pointer; font-size: 14px; padding: 0; }
+  .cmp-body { padding: 6px 18px 20px; display: grid; gap: 18px; }
+  .cmp-metric h4 { margin: 0 0 8px; font-size: 13px; color: var(--ink-2); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+  .cmp-row { display: grid; grid-template-columns: 70px 1fr 110px; align-items: center; gap: 10px; margin: 5px 0; }
+  .cmp-row .bar-track { height: 14px; border-radius: 7px; background: rgba(140,220,255,.07); overflow: hidden; position: relative; }
+  .cmp-row .bar { position: absolute; top: 0; bottom: 0; border-radius: 7px; }
+  .cmp-row .v { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; font-size: 13px; }
+  .hint { color: var(--muted); font-size: 12.5px; padding: 0 18px 16px; }
+
+  /* ---- methodology ---- */
+  .method { padding: 22px 24px; max-width: 860px; }
+  .method h3 { margin: 18px 0 8px; font-size: 16px; color: var(--cyan); }
+  .method h3:first-child { margin-top: 0; }
+  .method p, .method li { color: var(--ink-2); font-size: 13.5px; line-height: 1.65; }
+  .method code { color: var(--lime); background: rgba(200,245,66,.08); padding: 1px 6px; border-radius: 6px; font-size: 12.5px; }
+
+  /* ---- detail overlay (glass) ---- */
+  .overlay { position: fixed; inset: 0; background: rgba(2,10,18,.72); backdrop-filter: blur(6px); display: none; z-index: 20; overflow-y: auto; padding: 4vh 16px; }
+  .overlay.open { display: block; }
+  .sheet {
+    background: linear-gradient(160deg, rgba(13,38,58,.92), rgba(6,20,32,.95));
+    border: 1px solid var(--stroke); border-radius: 18px; max-width: 980px; margin: 0 auto;
+    box-shadow: 0 30px 80px rgba(0,5,12,.7), inset 0 1px 0 rgba(255,255,255,.08);
+    padding: 24px 26px 30px;
+  }
+  .sheet-head { display: flex; align-items: flex-start; gap: 14px; flex-wrap: wrap; }
+  .sheet-head h2 { margin: 0; font-size: 24px; }
+  .sheet-head .sub { color: var(--ink-2); font-size: 13px; margin-top: 2px; }
+  .close-btn { margin-left: auto; background: var(--glass); border: 1px solid var(--stroke); color: var(--ink); border-radius: 10px; padding: 6px 12px; font: inherit; cursor: pointer; }
+  .close-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+  .kpi-mini { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 18px 0 8px; }
+  .kpi-mini .k { background: var(--glass); border: 1px solid var(--stroke-soft); border-radius: 12px; padding: 10px 12px; }
+  .kpi-mini .lbl { font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 700; }
+  .kpi-mini .val { font-size: 18px; font-weight: 800; margin-top: 1px; font-variant-numeric: tabular-nums; }
+  .kpi-mini .sub { font-size: 12px; margin-top: 1px; color: var(--ink-2); }
+  .section-title { font-size: 12px; text-transform: uppercase; letter-spacing: .09em; color: var(--cyan); font-weight: 800; margin: 24px 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--stroke-soft); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 760px) { .grid2 { grid-template-columns: 1fr; } }
+  .panel { background: rgba(4,16,26,.35); border: 1px solid var(--stroke-soft); border-radius: 12px; padding: 14px 16px; }
+  .panel h4 { margin: 0 0 10px; font-size: 13px; font-weight: 600; color: var(--ink-2); }
+  .legend { display: flex; gap: 14px; font-size: 11.5px; color: var(--ink-2); margin-top: 8px; flex-wrap: wrap; }
+  .legend .sw { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+
+  .chart-tip {
+    position: fixed; pointer-events: none; z-index: 60; display: none;
+    background: #06131f; border: 1px solid var(--cyan); color: var(--ink); font-size: 12px;
+    border-radius: 8px; padding: 5px 9px; white-space: nowrap; font-variant-numeric: tabular-nums;
+    box-shadow: var(--glow-cyan);
+  }
+  svg text { font-family: inherit; }
+  .footer-note { color: var(--muted); font-size: 11.5px; margin-top: 24px; line-height: 1.6; }
+  @media (prefers-reduced-motion: no-preference) {
+    .overlay .sheet { animation: rise .18s ease-out; }
+    @keyframes rise { from { transform: translateY(10px); opacity: 0; } to { transform: none; opacity: 1; } }
+    .kpi .val { animation: fade .5s ease-out; }
+    @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+  }
+</style>
+
+<svg class="radar-bg" viewBox="0 0 720 720" aria-hidden="true">
+  <g fill="none" stroke="rgba(45,226,255,.16)">
+    <circle cx="360" cy="360" r="120"/><circle cx="360" cy="360" r="210"/>
+    <circle cx="360" cy="360" r="300"/><circle cx="360" cy="360" r="356"/>
+    <line x1="360" y1="4" x2="360" y2="716"/><line x1="4" y1="360" x2="716" y2="360"/>
+    <line x1="108" y1="108" x2="612" y2="612"/><line x1="612" y1="108" x2="108" y2="612"/>
+  </g>
+  <path d="M360,360 L360,40 A320,320 0 0 1 586,134 Z" fill="rgba(45,226,255,.05)"/>
+</svg>
+
+<div class="app">
+  <nav class="rail" aria-label="Görünümler">
+    <svg class="logo" viewBox="0 0 40 40" aria-hidden="true">
+      <circle cx="20" cy="20" r="16" fill="none" stroke="#2de2ff" stroke-width="2" opacity=".5"/>
+      <circle cx="20" cy="20" r="9" fill="none" stroke="#2de2ff" stroke-width="2" opacity=".8"/>
+      <line x1="20" y1="20" x2="31" y2="9" stroke="#c8f542" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="20" cy="20" r="2.6" fill="#c8f542"/>
+    </svg>
+    <button data-view="overview" class="active" aria-label="Genel Bakış" title="Genel Bakış">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+    </button>
+    <button data-view="companies" aria-label="Şirketler" title="Şirketler">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 21V5a1 1 0 0 1 1-1h7v17"/><path d="M12 9h7a1 1 0 0 1 1 1v11"/><path d="M2 21h20"/></svg>
+    </button>
+    <button data-view="compare" aria-label="Karşılaştır" title="Karşılaştır">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v18"/><path d="M5 7l-3 6a3.5 3.5 0 0 0 7 0Z"/><path d="M19 7l-3 6a3.5 3.5 0 0 0 7 0Z"/><path d="M6 7h12"/></svg>
+    </button>
+    <button data-view="method" aria-label="Metodoloji" title="Metodoloji">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><path d="M9 12h7M9 16h7"/></svg>
+    </button>
+  </nav>
+
+  <div class="main">
+    <header class="top">
+      <h1>BIST <span class="hl">100</span> Finansal Radar</h1>
+      <div class="pill"><span class="lbl">USD/TRY</span><span id="fxVal"></span></div>
+      <div class="avatar">AO</div>
+      <div class="meta"><span id="periodLbl"></span><span class="dot"></span><span id="asof"></span></div>
+    </header>
+
+    <div class="tabs" role="tablist">
+      <button data-view="overview" class="active" role="tab">Genel Bakış</button>
+      <button data-view="companies" role="tab">Şirketler</button>
+      <button data-view="compare" role="tab">Karşılaştır</button>
+      <button data-view="method" role="tab">Metodoloji</button>
+    </div>
+
+    <!-- ============ OVERVIEW ============ -->
+    <section id="view-overview">
+      <div class="kpis" id="kpis"></div>
+      <div class="ov">
+        <div class="card list-card">
+          <div class="list-head">
+            <h2>BIST 100 Şirketleri</h2>
+            <input class="search" id="ovq" type="search" placeholder="Şirket veya kod ara…" aria-label="Şirket ara">
+          </div>
+          <div class="scroller">
+            <table>
+              <thead>
+                <tr>
+                  <th class="l">Kod</th><th class="l">Şirket</th>
+                  <th class="sortable" data-k="revYoY">Gelir Büy.</th>
+                  <th class="sortable" data-k="opMargin">Faal. Marjı</th>
+                  <th class="sortable" data-k="netCash">Net Nakit/Borç</th>
+                  <th class="sortable" data-k="fcfTtm">SNA (12A)</th>
+                  <th class="sortable sorted" data-k="score">Skor</th>
+                </tr>
+              </thead>
+              <tbody id="ovBody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card co" id="coPanel"></div>
+      </div>
+    </section>
+
+    <!-- ============ COMPANIES ============ -->
+    <section id="view-companies" hidden>
+      <div class="card">
+        <div class="filters">
+          <input class="search" id="fq" type="search" placeholder="Hisse kodu veya şirket ara…" aria-label="Hisse ara">
+          <select id="sectorSel" aria-label="Sektör filtresi"></select>
+          <span class="count-note" id="countNote"></span>
+        </div>
+        <div class="scroller" style="max-height:640px">
+          <table style="min-width:1120px">
+            <thead>
+              <tr>
+                <th class="l sortable" data-k="code">Hisse</th>
+                <th class="l">Sektör</th>
+                <th class="sortable sorted" data-k="marketCap">Piyasa Değeri</th>
+                <th class="sortable" data-k="revQv">Gelir (Son Ç.)</th>
+                <th class="sortable" data-k="revYoY">Gelir YoY</th>
+                <th class="sortable" data-k="revQoQ">ÇoÇ</th>
+                <th class="sortable" data-k="niQv">Net Kâr</th>
+                <th class="sortable" data-k="netMargin">Net Marj</th>
+                <th class="sortable" data-k="fcfTtm">FCF (12A)</th>
+                <th class="sortable" data-k="debtToEquity">Borç/Özk.</th>
+                <th class="sortable" data-k="pe">F/K</th>
+                <th class="sortable" data-k="score">Skor</th>
+                <th>Trend</th>
+              </tr>
+            </thead>
+            <tbody id="fullBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ COMPARE ============ -->
+    <section id="view-compare" hidden>
+      <div class="card">
+        <div class="cmp-pick">
+          <input class="search" id="cmpq" type="search" list="cmpList" placeholder="Hisse ekle (en fazla 4)…" aria-label="Karşılaştırmaya hisse ekle">
+          <datalist id="cmpList"></datalist>
+          <span id="cmpChips" style="display:flex;gap:8px;flex-wrap:wrap"></span>
+        </div>
+        <div class="cmp-body" id="cmpBody"></div>
+        <p class="hint">Kod yazıp Enter'a basın. Çubuklar her metrikte seçili hisselerin en büyüğüne oranlanır.</p>
+      </div>
+    </section>
+
+    <!-- ============ METHOD ============ -->
+    <section id="view-method" hidden>
+      <div class="card method" id="methodBox"></div>
+    </section>
+
+    <p class="footer-note" id="footNote"></p>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="Şirket detayı">
+  <div class="sheet" id="sheet"></div>
+</div>
+<div class="chart-tip" id="tip"></div>
+
+<script>
+const DATA = /*__DATA__*/null;
+
+/* ---------- format (tr-TR) ---------- */
+const nf1 = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
+const nf2 = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 2, minimumFractionDigits: 2 });
+const nf0 = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 });
+function money(v) {
+  if (v == null) return "—";
+  const a = Math.abs(v);
+  if (a >= 1e12) return "₺" + nf2.format(v / 1e12) + " tn";
+  if (a >= 1e9)  return "₺" + nf1.format(v / 1e9) + " mr";
+  if (a >= 1e6)  return "₺" + nf0.format(v / 1e6) + " mn";
+  return "₺" + nf0.format(v);
+}
+function pct(v) { return (v == null || !isFinite(v)) ? "—" : (v > 0 ? "+" : "") + nf1.format(v) + "%"; }
+function ratio(v) { return v == null ? "—" : nf2.format(v) + "x"; }
+function cls(v) { return v == null ? "na" : v >= 0 ? "pos" : "neg"; }
+function qLabel(iso) { if (!iso) return ""; const [y, m] = iso.split("-").map(Number); return "Ç" + Math.ceil(m / 3) + "'" + String(y).slice(2); }
+function qLabelLong(iso) { if (!iso) return ""; const [y, m] = iso.split("-").map(Number); return y + " Ç" + Math.ceil(m / 3); }
+function esc(s) { return String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+const SECTOR_TR = { "Financial Services": "Finans", "Industrials": "Sanayi", "Consumer Cyclical": "Tüketim (Döngüsel)", "Consumer Defensive": "Temel Tüketim", "Basic Materials": "Temel Malzemeler", "Energy": "Enerji", "Utilities": "Kamu Hizmetleri", "Technology": "Teknoloji", "Communication Services": "İletişim", "Real Estate": "Gayrimenkul", "Healthcare": "Sağlık" };
+const trSector = s => s ? (SECTOR_TR[s] || s) : "—";
+
+/* ---------- derive ---------- */
+const stocks = (DATA.stocks || []).map(s => {
+  const revQv = s.revQ?.[0]?.[1] ?? null;
+  const niQv = s.niQ?.[0]?.[1] ?? null;
+  const opQv = s.opQ?.find(p => p[0] === s.revQ?.[0]?.[0])?.[1] ?? null;
+  const opMargin = (opQv != null && revQv) ? opQv / revQv * 100 : null;
+  const netCash = (s.cash != null && s.totalDebt != null) ? s.cash - s.totalDebt : null;
+  const revTtm = (s.revQ || []).slice(0, 4).every(p => p[1] != null) && (s.revQ || []).length >= 4
+    ? s.revQ.slice(0, 4).reduce((t, p) => t + p[1], 0) : null;
+  return { ...s, revQv, niQv, opMargin, netCash, revTtm, sectorTr: trSector(s.sector) };
+});
+
+/* ---------- score (percentile blend) ---------- */
+function pctlMaker(vals) {
+  const a = vals.filter(v => v != null && isFinite(v)).sort((x, y) => x - y);
+  return v => (v == null || !isFinite(v) || !a.length) ? 50 : (a.findIndex(x => x >= v) === -1 ? 100 : (a.findIndex(x => x >= v) / a.length) * 100);
+}
+const pG = pctlMaker(stocks.map(s => s.revYoY));
+const pM = pctlMaker(stocks.map(s => s.opMargin));
+const pF = pctlMaker(stocks.map(s => (s.fcfTtm != null && s.revTtm) ? s.fcfTtm / s.revTtm : null));
+const pB = pctlMaker(stocks.map(s => (s.netCash != null && s.totalAssets) ? s.netCash / s.totalAssets : null));
+stocks.forEach(s => {
+  s.score = Math.round(
+    0.30 * pG(s.revYoY) +
+    0.25 * pM(s.opMargin) +
+    0.25 * pF((s.fcfTtm != null && s.revTtm) ? s.fcfTtm / s.revTtm : null) +
+    0.20 * pB((s.netCash != null && s.totalAssets) ? s.netCash / s.totalAssets : null)
+  );
+});
+function scoreColor(sc) { return sc >= 75 ? "var(--lime)" : sc >= 55 ? "var(--cyan)" : sc >= 35 ? "var(--amber)" : "var(--red)"; }
+
+/* ---------- aggregates ---------- */
+function sumAt(field, date, opField) {
+  let num = 0, den = 0, n = 0;
+  stocks.forEach(s => {
+    const v = (s[field] || []).find(p => p[0] === date)?.[1];
+    if (v == null) return;
+    if (opField) {
+      const o = (s[opField] || []).find(p => p[0] === date)?.[1];
+      if (o == null) return;
+      num += o; den += v;
+    } else { num += v; }
+    n++;
+  });
+  return opField ? (den ? num / den * 100 : null) : (n ? num : null);
+}
+/* quarter axis derived from data: standard quarter-ends reported by ≥20 stocks, last 6 */
+const dateCounts = {};
+stocks.forEach(s => (s.revQ || []).forEach(p => { dateCounts[p[0]] = (dateCounts[p[0]] || 0) + 1; }));
+const QTRS = Object.keys(dateCounts)
+  .filter(d => ["03-31", "06-30", "09-30", "12-31"].includes(d.slice(5)) && dateCounts[d] >= 20)
+  .sort().slice(-6);
+const LATEST = QTRS[QTRS.length - 1], PREVQ = QTRS[QTRS.length - 2];
+const yearAgo = d => (parseInt(d.slice(0, 4)) - 1) + d.slice(4);
+const aggRev = QTRS.map(d => [d, sumAt("revQ", d)]);
+const aggMargin = QTRS.map(d => [d, sumAt("revQ", d, "opQ")]);
+const aggFcf = QTRS.map(d => {
+  let t = 0, n = 0;
+  stocks.forEach(s => {
+    const o = (s.ocfQ || []).find(p => p[0] === d)?.[1];
+    const c = (s.capexQ || []).find(p => p[0] === d)?.[1];
+    if (o != null && c != null) { t += o + c; n++; }
+  });
+  return [d, n ? t : null];
+});
+function matchedAggGrowth(date, prevDate) {
+  let cur = 0, prev = 0, n = 0;
+  stocks.forEach(s => {
+    const a = (s.revQ || []).find(p => p[0] === date)?.[1];
+    const b = (s.revQ || []).find(p => p[0] === prevDate)?.[1];
+    if (a != null && b != null && b > 0) { cur += a; prev += b; n++; }
+  });
+  return n ? (cur / prev - 1) * 100 : null;
+}
+const growNow = matchedAggGrowth(LATEST, yearAgo(LATEST));
+const growPrev = matchedAggGrowth(PREVQ, yearAgo(PREVQ));
+const marginNow = aggMargin[QTRS.length - 1][1], marginPrev = aggMargin[QTRS.length - 2][1];
+/* banks' deposits/borrowings dominate net cash — aggregate ex-financials only */
+const nonFin = stocks.filter(s => s.sectorTr !== "Finans");
+const netCashAgg = nonFin.reduce((t, s) => t + (s.netCash ?? 0), 0);
+const netCashPosCnt = nonFin.filter(s => s.netCash != null && s.netCash > 0).length;
+const netCashCnt = nonFin.filter(s => s.netCash != null).length;
+const fcfAggTtm = stocks.reduce((t, s) => t + (s.fcfTtm ?? 0), 0);
+const fcfNow = aggFcf[QTRS.length - 1][1], fcfPrev = aggFcf[QTRS.length - 2][1];
+
+/* ---------- micro charts ---------- */
+function sparkSvg(pairs, w, h, color) {
+  const pts = pairs.filter(p => p[1] != null);
+  if (pts.length < 2) return "";
+  const vals = pts.map(p => p[1]);
+  const min = Math.min(...vals), max = Math.max(...vals), rng = (max - min) || 1;
+  const x = i => 3 + i * (w - 6) / (pts.length - 1);
+  const y = v => h - 3 - (v - min) * (h - 6) / rng;
+  const d = pts.map((p, i) => (i ? "L" : "M") + x(i).toFixed(1) + "," + y(p[1]).toFixed(1)).join(" ");
+  const dots = pts.map((p, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(p[1]).toFixed(1)}" r="1.8" fill="${color}"/>`).join("");
+  const lastY = y(vals[vals.length - 1]), lastX = x(pts.length - 1);
+  return `<svg class="spark" width="${w}" height="${h}" aria-hidden="true">
+    <path d="${d}" fill="none" stroke="${color}" stroke-width="1.6" opacity=".85"/>${dots}
+    <circle cx="${lastX}" cy="${lastY}" r="3.2" fill="${color}" style="filter:drop-shadow(0 0 4px ${color})"/></svg>`;
+}
+function ringSvg(sc) {
+  const r = 16, c = 2 * Math.PI * r, frac = Math.max(0, Math.min(1, sc / 100));
+  const col = scoreColor(sc);
+  return `<span class="ring" role="img" aria-label="Skor ${sc}">
+    <svg viewBox="0 0 40 40" width="40" height="40">
+      <circle cx="20" cy="20" r="${r}" fill="none" stroke="rgba(140,220,255,.14)" stroke-width="3.5"/>
+      <circle cx="20" cy="20" r="${r}" fill="none" stroke="${col}" stroke-width="3.5" stroke-linecap="round"
+        stroke-dasharray="${(c * frac).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 20 20)"
+        style="filter:drop-shadow(0 0 3px ${col})"/>
+    </svg><b>${sc}</b></span>`;
+}
+function gaugeSvg(sc) {
+  const col = scoreColor(sc);
+  const a0 = -200, a1 = 20, ang = a0 + (a1 - a0) * sc / 100;
+  const arc = (start, end, rr) => {
+    const p = a => [60 + rr * Math.cos(a * Math.PI / 180), 52 + rr * Math.sin(a * Math.PI / 180)];
+    const [x1, y1] = p(start), [x2, y2] = p(end);
+    return `M${x1.toFixed(1)},${y1.toFixed(1)} A${rr},${rr} 0 ${end - start > 180 ? 1 : 0} 1 ${x2.toFixed(1)},${y2.toFixed(1)}`;
+  };
+  return `<svg viewBox="0 0 120 66" width="132" height="72" role="img" aria-label="Skor ${sc}/100">
+    <path d="${arc(a0, a1, 44)}" fill="none" stroke="rgba(140,220,255,.14)" stroke-width="9" stroke-linecap="round"/>
+    <path d="${arc(a0, ang, 44)}" fill="none" stroke="${col}" stroke-width="9" stroke-linecap="round" style="filter:drop-shadow(0 0 6px ${col})"/>
+    <circle cx="${(60 + 44 * Math.cos(ang * Math.PI / 180)).toFixed(1)}" cy="${(52 + 44 * Math.sin(ang * Math.PI / 180)).toFixed(1)}" r="4" fill="${col}"/>
+  </svg>`;
+}
+function trendChart(pairs) {
+  const pts = pairs.slice().reverse().filter(p => p[1] != null).slice(-4);
+  if (pts.length < 2) return '<div class="na">Veri yok</div>';
+  const w = 300, h = 130, padL = 20, padR = 24, padT = 24, padB = 20;
+  const vals = pts.map(p => p[1] / 1e9);
+  const min = 0, max = Math.max(...vals) * 1.15 || 1;
+  const x = i => padL + i * (w - padL - padR) / (pts.length - 1);
+  const y = v => padT + (max - v) * (h - padT - padB) / (max - min);
+  const line = pts.map((p, i) => (i ? "L" : "M") + x(i).toFixed(1) + "," + y(vals[i]).toFixed(1)).join(" ");
+  const area = line + ` L${x(pts.length - 1).toFixed(1)},${h - padB} L${padL},${h - padB} Z`;
+  let dots = "", lbls = "", xticks = "";
+  pts.forEach((p, i) => {
+    const last = i === pts.length - 1;
+    dots += `<circle cx="${x(i).toFixed(1)}" cy="${y(vals[i]).toFixed(1)}" r="${last ? 4.5 : 3}" fill="${last ? "var(--lime)" : "var(--cyan)"}" ${last ? 'style="filter:drop-shadow(0 0 5px var(--lime))"' : ""} class="hbar" data-tip="${qLabelLong(p[0])}: ${money(p[1])}"/>`;
+    lbls += `<text x="${x(i).toFixed(1)}" y="${(y(vals[i]) - 9).toFixed(1)}" text-anchor="middle" font-size="10.5" font-weight="700" fill="${last ? "var(--lime)" : "var(--ink-2)"}">${nf1.format(vals[i])}</text>`;
+    xticks += `<text x="${x(i).toFixed(1)}" y="${h - 5}" text-anchor="middle" font-size="10" fill="var(--muted)">${qLabel(p[0])}</text>`;
+  });
+  return `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto;display:block">
+    <defs><linearGradient id="tg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="rgba(45,226,255,.30)"/><stop offset="1" stop-color="rgba(45,226,255,0)"/>
+    </linearGradient></defs>
+    <line x1="${padL}" x2="${w - padR}" y1="${h - padB}" y2="${h - padB}" stroke="var(--grid)"/>
+    <path d="${area}" fill="url(#tg)"/>
+    <path d="${line}" fill="none" stroke="var(--cyan)" stroke-width="2.2" stroke-linecap="round" style="filter:drop-shadow(0 0 4px rgba(45,226,255,.6))"/>
+    ${dots}${lbls}${xticks}</svg>
+  <div style="font-size:10.5px;color:var(--muted);margin-top:2px">milyar ₺, çeyreklik gelir</div>`;
+}
+
+/* ---------- KPI cards ---------- */
+(function kpis() {
+  const el = document.getElementById("kpis");
+  const arrow = (now, prev, fmt) => prev == null || now == null ? "" :
+    `<span class="arr ${now >= prev ? "" : "down"}">${now >= prev ? "↗" : "↘"}</span> Önceki çeyrek: ${fmt(prev)}`;
+  el.innerHTML = `
+    <div class="card kpi">
+      <div class="lbl">Toplam gelir büyümesi (YoY)</div>
+      <div class="val ${cls(growNow)}">${pct(growNow)}</div>
+      <div class="sub">${arrow(growNow, growPrev, pct)}</div>
+      ${sparkSvg(aggRev, 110, 40, "var(--cyan)")}
+    </div>
+    <div class="card kpi">
+      <div class="lbl">Faaliyet kârı marjı</div>
+      <div class="val">${marginNow == null ? "—" : nf1.format(marginNow) + "%"}</div>
+      <div class="sub">${arrow(marginNow, marginPrev, v => nf1.format(v) + "%")}</div>
+      ${sparkSvg(aggMargin, 110, 40, "var(--cyan)")}
+    </div>
+    <div class="card kpi">
+      <div class="lbl">Net nakit (finans hariç)</div>
+      <div class="val ${cls(netCashAgg)}">${money(netCashAgg)}</div>
+      <div class="sub">${netCashPosCnt} / ${netCashCnt} şirket net nakit pozisyonunda</div>
+    </div>
+    <div class="card kpi">
+      <div class="lbl">Serbest nakit akışı (12A)</div>
+      <div class="val ${cls(fcfAggTtm)}">${money(fcfAggTtm)}</div>
+      <div class="sub">${arrow(fcfNow, fcfPrev, money)}</div>
+      ${sparkSvg(aggFcf, 110, 40, "var(--lime)")}
+    </div>`;
+})();
+
+/* ---------- overview table + company panel ---------- */
+let ovSortKey = "score", ovSortDir = -1, selected = null;
+function ovRows() {
+  const q = (document.getElementById("ovq").value || "").trim().toLocaleLowerCase("tr");
+  let rows = stocks.filter(s => !q || s.code.toLocaleLowerCase("tr").includes(q) || (s.name || "").toLocaleLowerCase("tr").includes(q));
+  rows.sort((a, b) => {
+    const va = a[ovSortKey], vb = b[ovSortKey];
+    if (va == null && vb == null) return 0;
+    if (va == null) return 1; if (vb == null) return -1;
+    return ovSortDir * (va - vb);
+  });
+  return rows;
+}
+function renderOverviewTable() {
+  const rows = ovRows();
+  document.getElementById("ovBody").innerHTML = rows.map(s => `
+    <tr data-code="${s.code}" tabindex="0" class="${selected === s.code ? "sel" : ""}" aria-label="${esc(s.code)} seç">
+      <td class="l tcode">${s.code}</td>
+      <td class="l tname">${esc(s.name)}</td>
+      <td class="${cls(s.revYoY)}">${pct(s.revYoY)}</td>
+      <td>${s.opMargin == null ? '<span class="na">—</span>' : nf1.format(s.opMargin) + "%"}</td>
+      <td class="${cls(s.netCash)}">${money(s.netCash)}</td>
+      <td class="${cls(s.fcfTtm)}">${money(s.fcfTtm)}</td>
+      <td>${ringSvg(s.score)}</td>
+    </tr>`).join("");
+}
+function renderCompanyPanel(code) {
+  const s = stocks.find(x => x.code === code);
+  if (!s) return;
+  selected = code;
+  const facts = [
+    ["Yıllık gelir", money(s.annualRev?.[0]?.[1]), '<path d="M2 8h12M2 4h12M2 12h12"/>'],
+    ["Faaliyet marjı", s.opMargin == null ? "—" : nf1.format(s.opMargin) + "%", '<circle cx="8" cy="8" r="6"/><path d="M5 11 11 5"/>'],
+    ["Net nakit", money(s.netCash), '<rect x="2" y="4" width="12" height="9" rx="2"/><path d="M2 8h12"/>'],
+    ["SNA (12A)", money(s.fcfTtm), '<path d="M2 12l4-5 3 3 5-7"/>'],
+  ];
+  document.getElementById("coPanel").innerHTML = `
+    <div class="co-head">
+      <div><h3>${s.code}</h3><div class="nm">${esc(s.name)}</div></div>
+      <span class="chip">${esc(s.sectorTr)}</span>
+    </div>
+    <div class="score-row">
+      <div class="score-big" style="color:${scoreColor(s.score)}">${s.score}<small> / 100</small></div>
+      ${gaugeSvg(s.score)}
+    </div>
+    <div class="trend-title">Gelir Trendi</div>
+    ${trendChart(s.revQ || [])}
+    <table class="facts">
+      ${facts.map(([l, v, ic]) => `<tr><td><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">${ic}</svg></span>${l}</td><td>${v}</td></tr>`).join("")}
+    </table>
+    <button class="cta" id="ctaDetail">Detaylı Analizi Aç →</button>`;
+  document.getElementById("ctaDetail").addEventListener("click", () => openDetail(s.code));
+  renderOverviewTable();
+}
+document.getElementById("ovq").addEventListener("input", renderOverviewTable);
+document.getElementById("ovBody").addEventListener("click", e => {
+  const tr = e.target.closest("tr[data-code]"); if (tr) renderCompanyPanel(tr.dataset.code);
+});
+document.getElementById("ovBody").addEventListener("keydown", e => {
+  const tr = e.target.closest("tr[data-code]");
+  if (tr && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); renderCompanyPanel(tr.dataset.code); }
+});
+document.querySelectorAll("#view-overview th.sortable").forEach(th => {
+  th.tabIndex = 0;
+  const act = () => {
+    const k = th.dataset.k;
+    if (ovSortKey === k) ovSortDir *= -1; else { ovSortKey = k; ovSortDir = -1; }
+    document.querySelectorAll("#view-overview th.sortable").forEach(t => t.classList.toggle("sorted", t === th));
+    renderOverviewTable();
+  };
+  th.addEventListener("click", act);
+  th.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); act(); } });
+});
+
+/* ---------- full companies view ---------- */
+const sectors = [...new Set(stocks.map(s => s.sectorTr))].sort((a, b) => a.localeCompare(b, "tr"));
+document.getElementById("sectorSel").innerHTML = '<option value="">Tüm sektörler</option>' + sectors.map(s => `<option>${esc(s)}</option>`).join("");
+let fSortKey = "marketCap", fSortDir = -1;
+function miniSpark(series) {
+  const pts = (series || []).slice().reverse().filter(p => p[1] != null);
+  if (pts.length < 2) return '<span class="na">—</span>';
+  const w = 90, h = 24;
+  const vals = pts.map(p => p[1]);
+  const min = Math.min(...vals), max = Math.max(...vals), rng = (max - min) || 1;
+  const x = i => 2 + i * (w - 4) / (pts.length - 1);
+  const y = v => h - 2 - (v - min) * (h - 4) / rng;
+  const d = pts.map((p, i) => (i ? "L" : "M") + x(i).toFixed(1) + "," + y(p[1]).toFixed(1)).join(" ");
+  const up = vals[vals.length - 1] >= vals[0];
+  return `<svg width="${w}" height="${h}" aria-hidden="true"><path d="${d}" fill="none" stroke="var(--cyan)" stroke-width="1.8" stroke-linecap="round"/><circle cx="${x(pts.length - 1)}" cy="${y(vals[vals.length - 1])}" r="2.6" fill="${up ? "var(--pos)" : "var(--red)"}"/></svg>`;
+}
+function renderFullTable() {
+  const q = (document.getElementById("fq").value || "").trim().toLocaleLowerCase("tr");
+  const sec = document.getElementById("sectorSel").value;
+  let rows = stocks.filter(s => (!sec || s.sectorTr === sec) &&
+    (!q || s.code.toLocaleLowerCase("tr").includes(q) || (s.name || "").toLocaleLowerCase("tr").includes(q)));
+  rows.sort((a, b) => {
+    if (fSortKey === "code") return fSortDir * a.code.localeCompare(b.code, "tr");
+    const va = a[fSortKey], vb = b[fSortKey];
+    if (va == null && vb == null) return 0;
+    if (va == null) return 1; if (vb == null) return -1;
+    return fSortDir * (va - vb);
+  });
+  document.getElementById("countNote").textContent = rows.length + " hisse gösteriliyor";
+  document.getElementById("fullBody").innerHTML = rows.map(s => `
+    <tr data-code="${s.code}" tabindex="0" aria-label="${esc(s.code)} detayını aç">
+      <td class="l"><span class="tcode">${s.code}</span><div class="tname">${esc(s.name)}</div></td>
+      <td class="l" style="font-size:11.5px;color:var(--ink-2)">${esc(s.sectorTr)}</td>
+      <td>${money(s.marketCap)}</td>
+      <td>${money(s.revQv)}</td>
+      <td class="${cls(s.revYoY)}">${pct(s.revYoY)}</td>
+      <td class="${cls(s.revQoQ)}">${pct(s.revQoQ)}</td>
+      <td class="${cls(s.niQv)}">${money(s.niQv)}</td>
+      <td>${s.netMargin == null ? '<span class="na">—</span>' : nf1.format(s.netMargin) + "%"}</td>
+      <td class="${cls(s.fcfTtm)}">${money(s.fcfTtm)}</td>
+      <td>${ratio(s.debtToEquity)}</td>
+      <td>${s.pe == null ? '<span class="na">—</span>' : nf1.format(s.pe)}</td>
+      <td>${ringSvg(s.score)}</td>
+      <td class="sparkcell">${miniSpark(s.revQ)}</td>
+    </tr>`).join("");
+}
+document.getElementById("fq").addEventListener("input", renderFullTable);
+document.getElementById("sectorSel").addEventListener("change", renderFullTable);
+document.querySelectorAll("#view-companies th.sortable").forEach(th => {
+  th.tabIndex = 0;
+  const act = () => {
+    const k = th.dataset.k;
+    if (fSortKey === k) fSortDir *= -1; else { fSortKey = k; fSortDir = k === "code" ? 1 : -1; }
+    document.querySelectorAll("#view-companies th.sortable").forEach(t => t.classList.toggle("sorted", t === th));
+    renderFullTable();
+  };
+  th.addEventListener("click", act);
+  th.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); act(); } });
+});
+document.getElementById("fullBody").addEventListener("click", e => {
+  const tr = e.target.closest("tr[data-code]"); if (tr) openDetail(tr.dataset.code);
+});
+document.getElementById("fullBody").addEventListener("keydown", e => {
+  const tr = e.target.closest("tr[data-code]");
+  if (tr && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); openDetail(tr.dataset.code); }
+});
+
+/* ---------- compare ---------- */
+const CMP_COLORS = ["var(--cyan)", "var(--lime)", "var(--amber)", "#9085e9"];
+let cmpSet = ["ASELS", "THYAO", "BIMAS"];
+document.getElementById("cmpList").innerHTML = stocks.map(s => `<option value="${s.code}">${esc(s.name)}</option>`).join("");
+function renderCompare() {
+  const chips = document.getElementById("cmpChips");
+  chips.innerHTML = cmpSet.map((c, i) => `<span class="cmp-chip" style="border-color:${CMP_COLORS[i]};color:${CMP_COLORS[i]}">${c}<button data-rm="${c}" aria-label="${c} çıkar">✕</button></span>`).join("");
+  const sel = cmpSet.map(c => stocks.find(s => s.code === c)).filter(Boolean);
+  const metrics = [
+    ["Gelir (Son Çeyrek)", s => s.revQv, money],
+    ["Gelir Büyümesi YoY", s => s.revYoY, pct],
+    ["Net Kâr (Son Çeyrek)", s => s.niQv, money],
+    ["Faaliyet Marjı", s => s.opMargin, v => v == null ? "—" : nf1.format(v) + "%"],
+    ["SNA (12 Ay)", s => s.fcfTtm, money],
+    ["Net Nakit / (Borç)", s => s.netCash, money],
+    ["Skor", s => s.score, v => v == null ? "—" : String(v)],
+  ];
+  document.getElementById("cmpBody").innerHTML = metrics.map(([title, get, fmt]) => {
+    const vals = sel.map(get);
+    const maxAbs = Math.max(...vals.map(v => Math.abs(v ?? 0)), 1e-9);
+    return `<div class="cmp-metric"><h4>${title}</h4>` + sel.map((s, i) => {
+      const v = vals[i];
+      const wPct = v == null ? 0 : Math.abs(v) / maxAbs * 100;
+      const col = v != null && v < 0 ? "var(--red)" : CMP_COLORS[i];
+      return `<div class="cmp-row">
+        <span class="tcode" style="color:${CMP_COLORS[i]}">${s.code}</span>
+        <span class="bar-track"><span class="bar" style="width:${wPct.toFixed(1)}%;left:0;background:${col};opacity:.85"></span></span>
+        <span class="v ${cls(v)}">${fmt(v)}</span></div>`;
+    }).join("") + "</div>";
+  }).join("");
+  chips.querySelectorAll("button[data-rm]").forEach(b => b.addEventListener("click", () => {
+    cmpSet = cmpSet.filter(c => c !== b.dataset.rm); renderCompare();
+  }));
+}
+document.getElementById("cmpq").addEventListener("change", e => {
+  const code = e.target.value.trim().toUpperCase();
+  if (stocks.some(s => s.code === code) && !cmpSet.includes(code) && cmpSet.length < 4) {
+    cmpSet.push(code); e.target.value = ""; renderCompare();
+  }
+});
+
+/* ---------- methodology ---------- */
+document.getElementById("methodBox").innerHTML = `
+  <h3>Veri kaynağı</h3>
+  <p>Tüm finansallar Yahoo Finance (yfinance) üzerinden, şirketlerin KAP'a raporladığı son dönemlerden alınır.
+  Fiyat ve piyasa değerleri ${esc(DATA.asOf)} anlık görüntüsüdür ve ikinci bir kaynakla (Mynet Finans) %3 tolerans içinde çapraz doğrulanmıştır.
+  Finansallarını USD raporlayan ENKAI ve THYAO ile EUR raporlayan TAVHL, güncel kurla TL'ye çevrilmiştir
+  (USD/TRY ${nf2.format(DATA.fx?.USD ?? 0)} · EUR/TRY ${nf2.format(DATA.fx?.EUR ?? 0)}).</p>
+  <h3>Skor nasıl hesaplanır?</h3>
+  <p>Skor, dört boyutun BIST 100 içindeki yüzdelik sıralamasının ağırlıklı ortalamasıdır:</p>
+  <ul>
+    <li><code>%30</code> Gelir büyümesi (son çeyrek, yıllık — tarih eşleştirmeli)</li>
+    <li><code>%25</code> Faaliyet kârı marjı (son çeyrek)</li>
+    <li><code>%25</code> Serbest nakit akışı / gelir (12 aylık)</li>
+    <li><code>%20</code> Net nakit / toplam varlıklar</li>
+  </ul>
+  <p>Verisi olmayan boyut nötr (50. yüzdelik) sayılır; bu yüzden bankalarda skor ağırlıkla büyüme ve marjdan gelir.
+  Skor bir kalite sıralamasıdır, alım-satım sinyali değildir.</p>
+  <h3>Bilinen sınırlamalar</h3>
+  <ul>
+    <li>Bankalar ve finansal kuruluşlarda "gelir" Total Revenue kalemidir; capex/FCF anlamlı olmadığından boş bırakılır.</li>
+    <li>TMS-29 enflasyon muhasebesi nedeniyle TL bazlı yıllık karşılaştırmalar reel büyümeyi olduğundan farklı gösterebilir.</li>
+    <li>yfinance bazı şirketlerde ara çeyrekleri atlayabilir; büyüme oranları bu yüzden daima tarih eşleştirmeli hesaplanır.</li>
+  </ul>
+  <p>Bu pano bilgilendirme amaçlıdır; yatırım tavsiyesi değildir.</p>`;
+
+/* ---------- detail sheet (from v1, glass-styled) ---------- */
+const tip = document.getElementById("tip");
+function barChart(series) {
+  const groups = {};
+  series.forEach(s => (s.values || []).forEach(([d, v]) => { (groups[d] = groups[d] || {})[s.label] = v; }));
+  const dates = Object.keys(groups).sort();
+  if (!dates.length) return '<div class="na">Veri yok</div>';
+  const w = 420, h = 150, padL = 6, padR = 6, padT = 10, padB = 20;
+  const innerW = w - padL - padR, innerH = h - padT - padB;
+  let min = 0, max = 0;
+  dates.forEach(d => series.forEach(s => { const v = groups[d][s.label]; if (v != null) { min = Math.min(min, v); max = Math.max(max, v); } }));
+  if (min === 0 && max === 0) max = 1;
+  const y = v => padT + (max - v) * innerH / (max - min);
+  const y0 = y(0);
+  const groupW = innerW / dates.length;
+  const barW = Math.min(26, (groupW - 8) / series.length);
+  let bars = "", labels = "";
+  dates.forEach((d, gi) => {
+    const cx = padL + gi * groupW + groupW / 2;
+    series.forEach((s, si) => {
+      const v = groups[d][s.label];
+      if (v == null) return;
+      const x = cx - (series.length * barW + (series.length - 1) * 2) / 2 + si * (barW + 2);
+      const yt = Math.min(y(v), y0), hb = Math.max(Math.abs(y(v) - y0), 1);
+      bars += `<path d="${roundedBar(x, yt, barW, hb, v >= 0 ? 4 : 0, v < 0 ? 4 : 0)}" fill="${s.color}" data-tip="${esc(s.label)} · ${qLabelLong(d)}: ${money(v)}" class="hbar"/>`;
+    });
+    labels += `<text x="${cx}" y="${h - 5}" text-anchor="middle" font-size="10" fill="var(--muted)">${qLabelLong(d)}</text>`;
+  });
+  return `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto;display:block">
+    <line x1="${padL}" x2="${w - padR}" y1="${y0}" y2="${y0}" stroke="rgba(140,220,255,.25)" stroke-width="1"/>${bars}${labels}</svg>`;
+}
+function roundedBar(x, y, w, h, rt, rb) {
+  rt = Math.min(rt, h, w / 2); rb = Math.min(rb, h, w / 2);
+  return `M${x},${y + rt} Q${x},${y} ${x + rt},${y} L${x + w - rt},${y} Q${x + w},${y} ${x + w},${y + rt} L${x + w},${y + h - rb} Q${x + w},${y + h} ${x + w - rb},${y + h} L${x + rb},${y + h} Q${x},${y + h} ${x},${y + h - rb} Z`;
+}
+document.addEventListener("mousemove", e => {
+  const t = e.target.closest && e.target.closest(".hbar");
+  if (t && t.dataset.tip) {
+    tip.textContent = t.dataset.tip; tip.style.display = "block";
+    tip.style.left = Math.min(e.clientX + 12, innerWidth - tip.offsetWidth - 8) + "px";
+    tip.style.top = (e.clientY - 34) + "px";
+  } else tip.style.display = "none";
+});
+const overlay = document.getElementById("overlay");
+function openDetail(code) {
+  const s = stocks.find(x => x.code === code);
+  if (!s) return;
+  const lastQ = s.revQ?.length ? qLabelLong(s.revQ[0][0]) : "—";
+  const fcfQ = s.fcfQ, capexT = s.capexTtm == null ? null : -s.capexTtm;
+  const capexQ = s.capexQ?.length && s.capexQ[0][1] != null ? -s.capexQ[0][1] : null;
+  document.getElementById("sheet").innerHTML = `
+    <div class="sheet-head">
+      <div>
+        <h2>${s.code} <span style="font-weight:400;color:var(--ink-2)">· ${esc(s.name)}</span></h2>
+        <div class="sub">${esc(s.sectorTr)}${s.industry ? " · " + esc(s.industry) : ""} · Son bilanço: ${s.bsDate ? qLabelLong(s.bsDate) : "—"} · Skor <b style="color:${scoreColor(s.score)}">${s.score}</b>/100</div>
+      </div>
+      <button class="close-btn" id="closeBtn">Kapat ✕</button>
+    </div>
+    <div class="kpi-mini">
+      <div class="k"><div class="lbl">Piyasa Değeri</div><div class="val">${money(s.marketCap)}</div><div class="sub">${s.price != null ? "₺" + nf2.format(s.price) : ""}</div></div>
+      <div class="k"><div class="lbl">Gelir · ${lastQ}</div><div class="val">${money(s.revQv)}</div><div class="sub ${cls(s.revYoY)}">${pct(s.revYoY)} YoY</div></div>
+      <div class="k"><div class="lbl">Net Kâr · ${lastQ}</div><div class="val ${cls(s.niQv)}">${money(s.niQv)}</div><div class="sub">${s.netMargin != null ? "marj " + nf1.format(s.netMargin) + "%" : ""}</div></div>
+      <div class="k"><div class="lbl">FCF · 12 Ay</div><div class="val ${cls(s.fcfTtm)}">${money(s.fcfTtm)}</div><div class="sub">${fcfQ != null ? "son çeyrek " + money(fcfQ) : ""}</div></div>
+      <div class="k"><div class="lbl">F/K · PD/DD</div><div class="val">${s.pe == null ? "—" : nf1.format(s.pe)}${s.pb != null ? " · " + nf1.format(s.pb) : ""}</div><div class="sub">fiyat çarpanları</div></div>
+    </div>
+    <div class="section-title">Çeyreklik Gelir ve Net Kâr</div>
+    <div class="grid2">
+      <div class="panel"><h4>Gelir (çeyreklik)</h4>${barChart([{ label: "Gelir", values: s.revQ, color: "var(--cyan)" }])}</div>
+      <div class="panel"><h4>Net kâr (çeyreklik)</h4>${barChart([{ label: "Net kâr", values: s.niQ, color: "var(--lime)" }])}</div>
+    </div>
+    <div class="section-title">Bilanço · ${s.bsDate ? qLabelLong(s.bsDate) : "son dönem"}</div>
+    <div class="grid2">
+      <div class="panel"><table class="facts">
+        <tr><td>Toplam varlıklar</td><td>${money(s.totalAssets)}</td></tr>
+        <tr><td>Nakit ve benzerleri</td><td>${money(s.cash)}</td></tr>
+        <tr><td>Toplam yükümlülükler</td><td>${money(s.totalLiab)}</td></tr>
+      </table></div>
+      <div class="panel"><table class="facts">
+        <tr><td>Toplam finansal borç</td><td>${money(s.totalDebt)}</td></tr>
+        <tr><td>Özkaynaklar</td><td>${money(s.equity)}</td></tr>
+        <tr><td>Borç / Özkaynak</td><td>${ratio(s.debtToEquity)}</td></tr>
+      </table></div>
+    </div>
+    <div class="section-title">Nakit Akışı</div>
+    <div class="grid2">
+      <div class="panel">
+        <h4>Faaliyet nakit akışı vs capex (çeyreklik)</h4>
+        ${barChart([
+          { label: "Faaliyet NA", values: s.ocfQ, color: "var(--cyan)" },
+          { label: "Capex", values: s.capexQ, color: "var(--amber)" }
+        ])}
+        <div class="legend"><span><span class="sw" style="background:var(--cyan)"></span>Faaliyet nakit akışı</span>
+        <span><span class="sw" style="background:var(--amber)"></span>Yatırım harcaması (capex)</span></div>
+      </div>
+      <div class="panel"><table class="facts">
+        <tr><td>Faaliyet NA · 12 ay</td><td>${money(s.ocfTtm)}</td></tr>
+        <tr><td>Capex · 12 ay</td><td>${money(capexT)}</td></tr>
+        <tr><td>Serbest nakit akışı · 12 ay</td><td class="${cls(s.fcfTtm)}">${money(s.fcfTtm)}</td></tr>
+        <tr><td>Serbest nakit akışı · son çeyrek</td><td class="${cls(fcfQ)}">${money(fcfQ)}</td></tr>
+        ${capexQ != null ? `<tr><td>Capex · son çeyrek</td><td>${money(capexQ)}</td></tr>` : ""}
+      </table></div>
+    </div>
+    <div class="section-title">Yıllık Gelir</div>
+    <div class="grid2">
+      <div class="panel"><table class="facts">
+        ${(s.annualRev || []).map(p => `<tr><td>${p[0] ? p[0].slice(0, 4) : "—"} geliri</td><td>${money(p[1])}</td></tr>`).join("") || "<tr><td>Veri yok</td><td>—</td></tr>"}
+        <tr><td>Yıllık büyüme</td><td class="${cls(s.annualRevGrowth)}">${pct(s.annualRevGrowth)}</td></tr>
+      </table></div>
+      <div class="panel"><table class="facts">
+        ${(s.annualNi || []).map(p => `<tr><td>${p[0] ? p[0].slice(0, 4) : "—"} net kârı</td><td class="${cls(p[1])}">${money(p[1])}</td></tr>`).join("") || "<tr><td>Veri yok</td><td>—</td></tr>"}
+      </table></div>
+    </div>`;
+  overlay.classList.add("open");
+  document.body.style.overflow = "hidden";
+  document.getElementById("closeBtn").addEventListener("click", closeDetail);
+  document.getElementById("closeBtn").focus();
+}
+function closeDetail() { overlay.classList.remove("open"); document.body.style.overflow = ""; }
+overlay.addEventListener("click", e => { if (e.target === overlay) closeDetail(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeDetail(); });
+
+/* ---------- tabs / views ---------- */
+const VIEWS = ["overview", "companies", "compare", "method"];
+function showView(v) {
+  VIEWS.forEach(x => document.getElementById("view-" + x).hidden = x !== v);
+  document.querySelectorAll("[data-view]").forEach(b => b.classList.toggle("active", b.dataset.view === v));
+}
+document.querySelectorAll("[data-view]").forEach(b => b.addEventListener("click", () => showView(b.dataset.view)));
+
+/* ---------- init ---------- */
+document.getElementById("fxVal").textContent = nf2.format(DATA.fx?.USD ?? 0);
+document.getElementById("asof").textContent = "Son güncelleme: " + DATA.asOf;
+document.getElementById("periodLbl").textContent = LATEST ? "Ç" + Math.ceil(parseInt(LATEST.slice(5, 7)) / 3) + " " + LATEST.slice(0, 4) : "";
+document.getElementById("footNote").textContent = "Veri: Yahoo Finance (yfinance) · Mynet Finans ile çapraz doğrulanmış fiyatlar · Skor metodolojisi ve sınırlamalar için Metodoloji sekmesine bakın · Bu pano bilgilendirme amaçlıdır; yatırım tavsiyesi değildir.";
+renderOverviewTable();
+renderCompanyPanel([...stocks].sort((a, b) => b.score - a.score)[0].code);
+renderFullTable();
+renderCompare();
+</script>

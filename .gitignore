@@ -1,7 +1,11 @@
 # SIRLAR — asla commit etme
 users.json
-
-# düz metin pano (şifresiz içerik repoya girmez)
-bist100_dashboard.html
+.master.secret
 *.secret
+
+# türetilmiş veri ve düz metin pano (CI her saat yeniden üretir)
+bist100_data.json
+bist100_final.json
+bist100_dashboard.html
+
 .DS_Store

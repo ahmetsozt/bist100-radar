@@ -8,11 +8,13 @@ yalnızca davet edilen e-posta + şifre çiftleri panoyu tarayıcıda çözebili
 GitHub Actions (`.github/workflows/update.yml`) her saat başı çalışır:
 
 ```
-fetch_bist100.py  →  100 hissenin fiyat + çeyreklik finansallarını çeker (yfinance)
-fix_data.py       →  USD/EUR raporlayanları güncel kurla TL'ye çevirir,
-                     büyümeleri tarih eşleştirmeli hesaplar
-build_site.py     →  veriyi şablona gömer, MASTER_KEY ile şifreler,
-                     saat damgalı index.html üretir ve commit'ler
+fetch_bist100.py   →  100 hissenin fiyat + çeyreklik finansallarını çeker (yfinance)
+fetch_technical.py →  2 yıllık günlük OHLCV'den teknik göstergeleri hesaplar
+                      (SMA/RSI/MACD/ATR/relatif güç + XU100 rejimi)
+fix_data.py        →  USD/EUR raporlayanları güncel kurla TL'ye çevirir,
+                      büyümeleri tarih eşleştirmeli hesaplar
+build_site.py      →  veriyi şablona gömer, MASTER_KEY ile şifreler,
+                      saat damgalı index.html üretir ve commit'ler
 ```
 
 Veri çekimi başarısız olursa (ör. kaynak erişilemezse) site **son başarılı

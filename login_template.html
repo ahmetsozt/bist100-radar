@@ -78,19 +78,22 @@
   </div>
   <p class="sub">Yatırımcı girişi — erişim davetlidir</p>
   <form id="f" novalidate>
-    <label for="em">E-posta</label>
-    <input id="em" type="email" autocomplete="username" placeholder="ornek@eposta.com" required>
+    <label for="em">Kullanıcı adı</label>
+    <input id="em" type="text" autocomplete="username" placeholder="Kullanıcı adınız" required>
     <label for="pw">Şifre</label>
     <input id="pw" type="password" autocomplete="current-password" placeholder="••••••••••" required>
     <button id="btn" type="submit">Giriş Yap</button>
     <div class="err" id="err" role="alert"></div>
   </form>
-  <p class="note"><span class="lock">🔒</span>Pano içeriği AES-256-GCM ile şifrelidir ve yalnızca doğru e-posta + şifre ile tarayıcınızda çözülür.
+  <p class="note"><span class="lock">🔒</span>Pano içeriği AES-256-GCM ile şifrelidir ve yalnızca doğru kullanıcı adı + şifre ile tarayıcınızda çözülür.
+  Güvenlik amacıyla başarılı girişlerin kaydı (IP adresi dahil) tutulabilir.
   Erişim talebi için panoyu sizinle paylaşan kişiyle iletişime geçin.</p>
 </main>
 
 <script>
 const USERS = __USERS__;
+/* Giriş kaydı webhook'u (Make.com): boşsa kayıt atlanır. IP sunucu tarafında alınır. */
+const HOOK_URL = "";
 const EMAIL_SALT = "__EMAIL_SALT__";
 const PAYLOAD = { iv: "__P_IV__", ct: "__P_CT__" };
 const PBKDF2_ITERS = 310000;
@@ -152,6 +155,11 @@ document.getElementById("f").addEventListener("submit", async e => {
     const kek = await deriveKek(pw.trim(), rec.s);
     const master = await crypto.subtle.decrypt({ name: "AES-GCM", iv: b64d(rec.i) }, kek, b64d(rec.w));
     sessionStorage.setItem("radarKey", b64e(master));
+    try {
+      if (HOOK_URL) fetch(HOOK_URL, { method: "POST", mode: "no-cors", keepalive: true,
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({ u: email.trim(), t: new Date().toISOString(), ua: navigator.userAgent }) });
+    } catch (_) { /* kayıt başarısız olsa da giriş engellenmez */ }
     boot(await decryptPayload(new Uint8Array(master)));
   } catch (ex) {
     err.textContent = "E-posta veya şifre hatalı.";

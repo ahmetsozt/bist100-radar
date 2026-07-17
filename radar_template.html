@@ -213,6 +213,47 @@
   .method p, .method li { color: var(--ink-2); font-size: 13.5px; line-height: 1.65; }
   .method code { color: var(--lime); background: rgba(200,245,66,.08); padding: 1px 6px; border-radius: 6px; font-size: 12.5px; }
 
+  /* ---- karar katmanı ---- */
+  .badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 800;
+    letter-spacing: .04em; padding: 3px 9px; border-radius: 8px; border: 1px solid; white-space: nowrap; }
+  .b-up { color: var(--lime); border-color: rgba(200,245,66,.5); background: rgba(200,245,66,.08); }
+  .b-flat { color: var(--cyan); border-color: rgba(45,226,255,.45); background: rgba(45,226,255,.07); }
+  .b-down { color: var(--red); border-color: rgba(255,107,122,.5); background: rgba(255,107,122,.08); }
+  .b-warn { color: var(--amber); border-color: rgba(255,200,87,.5); background: rgba(255,200,87,.08); }
+  .b-mute { color: var(--muted); border-color: var(--stroke); }
+  .regime { margin-left: 4px; }
+  .star-btn { background: none; border: none; cursor: pointer; font-size: 15px; padding: 2px 4px;
+    color: var(--muted); line-height: 1; }
+  .star-btn.on { color: var(--amber); text-shadow: 0 0 8px rgba(255,200,87,.6); }
+  .star-btn:focus-visible { outline: 2px solid var(--cyan); border-radius: 6px; }
+  .watch-toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink-2);
+    cursor: pointer; user-select: none; }
+  .watch-toggle input { accent-color: var(--amber); }
+  .tech-rows { display: grid; gap: 8px; margin-top: 10px; }
+  .tech-row { display: grid; grid-template-columns: 110px auto 1fr; gap: 10px; align-items: center;
+    font-size: 12.5px; color: var(--ink-2); }
+  .tech-row .lbl { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+  .tech-row .why { min-width: 0; }
+  .quad-card { border: 1px solid var(--stroke); border-radius: 12px; padding: 12px 14px; margin-top: 12px;
+    background: rgba(4,16,26,.35); }
+  .quad-card .note { font-size: 11px; color: var(--muted); margin-top: 6px; }
+  /* pozisyon sekmesi */
+  .pos-grid { display: grid; grid-template-columns: 340px 1fr; gap: 14px; align-items: start; }
+  @media (max-width: 900px) { .pos-grid { grid-template-columns: 1fr; } }
+  .pos-form { padding: 18px; display: grid; gap: 12px; }
+  .pos-form label { font-size: 12px; color: var(--ink-2); display: grid; gap: 5px; }
+  .pos-form input, .pos-form select {
+    background: rgba(4,16,26,.5); border: 1px solid var(--stroke); color: var(--ink);
+    border-radius: 10px; padding: 9px 12px; font: inherit; font-size: 14px; width: 100%;
+    font-variant-numeric: tabular-nums; }
+  .pos-form input:focus-visible, .pos-form select:focus-visible { outline: 2px solid var(--cyan); }
+  .pos-out { padding: 18px; }
+  .pos-out .facts td:last-child { font-variant-numeric: tabular-nums; }
+  .pos-hero { font-size: 26px; font-weight: 800; margin: 2px 0 10px; }
+  .pos-warn { margin-top: 12px; font-size: 12.5px; line-height: 1.55; border-left: 3px solid var(--amber);
+    padding: 8px 12px; color: var(--amber); background: rgba(255,200,87,.06); border-radius: 0 8px 8px 0; display: none; }
+  .pos-note { color: var(--muted); font-size: 11.5px; margin-top: 14px; line-height: 1.6; }
+
   /* ---- detail overlay (glass) ---- */
   .overlay { position: fixed; inset: 0; background: rgba(2,10,18,.72); backdrop-filter: blur(6px); display: none; z-index: 20; overflow-y: auto; padding: 4vh 16px; }
   .overlay.open { display: block; }
@@ -283,6 +324,9 @@
     <button data-view="compare" aria-label="Karşılaştır" title="Karşılaştır">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v18"/><path d="M5 7l-3 6a3.5 3.5 0 0 0 7 0Z"/><path d="M19 7l-3 6a3.5 3.5 0 0 0 7 0Z"/><path d="M6 7h12"/></svg>
     </button>
+    <button data-view="position" aria-label="Pozisyon" title="Pozisyon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+    </button>
     <button data-view="method" aria-label="Metodoloji" title="Metodoloji">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><path d="M9 12h7M9 16h7"/></svg>
     </button>
@@ -300,6 +344,7 @@
       <button data-view="overview" class="active" role="tab">Genel Bakış</button>
       <button data-view="companies" role="tab">Şirketler</button>
       <button data-view="compare" role="tab">Karşılaştır</button>
+      <button data-view="position" role="tab">Pozisyon</button>
       <button data-view="method" role="tab">Metodoloji</button>
     </div>
 
@@ -310,17 +355,21 @@
         <div class="card list-card">
           <div class="list-head">
             <h2>BIST 100 Şirketleri</h2>
+            <label class="watch-toggle"><input type="checkbox" id="ovWatch">⭐ izlediklerim</label>
             <input class="search" id="ovq" type="search" placeholder="Şirket veya kod ara…" aria-label="Şirket ara">
           </div>
           <div class="scroller">
-            <table>
+            <table style="min-width:860px">
               <thead>
                 <tr>
+                  <th class="l" style="width:30px"></th>
                   <th class="l">Kod</th><th class="l">Şirket</th>
                   <th class="sortable" data-k="revYoY">Gelir Büy.</th>
                   <th class="sortable" data-k="opMargin">Faal. Marjı</th>
                   <th class="sortable" data-k="netCash">Net Nakit/Borç</th>
                   <th class="sortable" data-k="fcfTtm">SNA (12A)</th>
+                  <th class="sortable" data-k="techPts">Teknik</th>
+                  <th class="sortable" data-k="rs3m">RG 3A</th>
                   <th class="sortable sorted" data-k="score">Skor</th>
                 </tr>
               </thead>
@@ -338,12 +387,14 @@
         <div class="filters">
           <input class="search" id="fq" type="search" placeholder="Hisse kodu veya şirket ara…" aria-label="Hisse ara">
           <select id="sectorSel" aria-label="Sektör filtresi"></select>
+          <label class="watch-toggle"><input type="checkbox" id="fWatch">⭐ izlediklerim</label>
           <span class="count-note" id="countNote"></span>
         </div>
         <div class="scroller" style="max-height:640px">
-          <table style="min-width:1120px">
+          <table style="min-width:1280px">
             <thead>
               <tr>
+                <th class="l" style="width:30px"></th>
                 <th class="l sortable" data-k="code">Hisse</th>
                 <th class="l">Sektör</th>
                 <th class="sortable sorted" data-k="marketCap">Piyasa Değeri</th>
@@ -355,6 +406,8 @@
                 <th class="sortable" data-k="fcfTtm">FCF (12A)</th>
                 <th class="sortable" data-k="debtToEquity">Borç/Özk.</th>
                 <th class="sortable" data-k="pe">F/K</th>
+                <th class="sortable" data-k="techPts">Teknik</th>
+                <th class="sortable" data-k="rs3m">RG 3A</th>
                 <th class="sortable" data-k="score">Skor</th>
                 <th>Trend</th>
               </tr>
@@ -376,6 +429,34 @@
         <div class="cmp-body" id="cmpBody"></div>
         <p class="hint">Kod yazıp Enter'a basın. Çubuklar her metrikte seçili hisselerin en büyüğüne oranlanır.</p>
       </div>
+    </section>
+
+    <!-- ============ POSITION ============ -->
+    <section id="view-position" hidden>
+      <div class="pos-grid">
+        <div class="card pos-form">
+          <h2 style="margin:0;font-size:17px">Pozisyon Hesaplayıcı</h2>
+          <label>Hisse
+            <select id="posStock" aria-label="Hisse seç"></select>
+          </label>
+          <label>Hesap büyüklüğü (₺)
+            <input id="posAcct" type="number" min="0" step="1000" value="1000000">
+          </label>
+          <label>İşlem başına risk (%)
+            <input id="posRiskPct" type="number" min="0.1" max="10" step="0.1" value="1">
+          </label>
+          <label>Giriş fiyatı (₺) — varsayılan: son kapanış
+            <input id="posEntry" type="number" min="0" step="0.01">
+          </label>
+          <label><span style="white-space:nowrap">Stop mesafesi — ATR çarpanı: <b id="posKVal">1,5</b>×</span>
+            <input id="posK" type="range" min="1" max="3" step="0.25" value="1.5">
+          </label>
+          <p class="pos-note">Hesaplama tamamen tarayıcınızda yapılır; hiçbir veri kaydedilmez veya gönderilmez.</p>
+        </div>
+        <div class="card pos-out" id="posOut"></div>
+      </div>
+      <p class="footer-note">Bu hesaplayıcı mekanik bir formül uygular (risk = hesap × risk%, adet = risk / stop mesafesi);
+      yatırım tavsiyesi değildir. Veriler günlük bar bazlıdır — gün içi al-sat aracı değildir.</p>
     </section>
 
     <!-- ============ METHOD ============ -->
@@ -427,6 +508,45 @@ const stocks = (DATA.stocks || []).map(s => {
     ? s.revQ.slice(0, 4).reduce((t, p) => t + p[1], 0) : null;
   return { ...s, revQv, niQv, opMargin, netCash, revTtm, sectorTr: trSector(s.sector) };
 });
+
+/* ---------- teknik katman + izleme listesi ---------- */
+const TECH = DATA.tech || {};
+const MARKET = DATA.market || {};
+stocks.forEach(s => {
+  s.tech = TECH[s.code] || null;
+  s.techPts = s.tech ? s.tech.pts : null;
+  s.rs3m = s.tech ? s.tech.rs3m : null;
+});
+let watchSet = new Set();
+try { watchSet = new Set(JSON.parse(localStorage.getItem("radarWatch") || "[]")); } catch (e) {}
+function toggleWatch(code) {
+  watchSet.has(code) ? watchSet.delete(code) : watchSet.add(code);
+  try { localStorage.setItem("radarWatch", JSON.stringify([...watchSet])); } catch (e) {}
+  renderOverviewTable(); renderFullTable();
+}
+const starHtml = code => `<button class="star-btn ${watchSet.has(code) ? "on" : ""}" data-star="${code}"
+  aria-label="${code} izleme listesi" title="İzleme listesine ekle/çıkar">${watchSet.has(code) ? "★" : "☆"}</button>`;
+function techBadge(s, compact) {
+  if (!s.tech) return '<span class="na">—</span>';
+  const d = s.tech.dir;
+  const cls = d === "up" ? "b-up" : d === "down" ? "b-down" : "b-flat";
+  const txt = d === "up" ? "YUKARI" : d === "down" ? "AŞAĞI" : "NÖTR";
+  return `<span class="badge ${cls}" title="Teknik puan ${s.tech.pts}/6">${compact ? txt : txt + " " + s.tech.pts + "/6"}</span>`;
+}
+function quadrant(s) {
+  if (!s.tech) return null;
+  const strong = s.score >= 60, d = s.tech.dir;
+  if (strong && d === "up") return { t: "RADARDA", cls: "b-up", r: "temel ve momentum uyumlu" };
+  if (strong && d === "flat") return { t: "İZLEMEDE", cls: "b-flat", r: "temel güçlü, teknik nötr" };
+  if (strong && d === "down") return { t: "ERKEN", cls: "b-warn", r: "temel güçlü, trend dönüş teyidi bekleniyor" };
+  if (!strong && d === "up") return { t: "SPEKÜLATİF", cls: "b-warn", r: "momentum var, temel desteği zayıf" };
+  if (!strong && d === "flat") return { t: "ZAYIF", cls: "b-mute", r: "öne çıkan bir sinyal yok" };
+  return { t: "UZAK DUR", cls: "b-down", r: "temel ve teknik birlikte zayıf" };
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest && e.target.closest("[data-star]");
+  if (b) { e.stopPropagation(); toggleWatch(b.dataset.star); }
+}, true);
 
 /* ---------- score (percentile blend) ---------- */
 function pctlMaker(vals) {
@@ -604,7 +724,9 @@ function trendChart(pairs) {
 let ovSortKey = "score", ovSortDir = -1, selected = null;
 function ovRows() {
   const q = (document.getElementById("ovq").value || "").trim().toLocaleLowerCase("tr");
-  let rows = stocks.filter(s => !q || s.code.toLocaleLowerCase("tr").includes(q) || (s.name || "").toLocaleLowerCase("tr").includes(q));
+  const onlyWatch = document.getElementById("ovWatch").checked;
+  let rows = stocks.filter(s => (!onlyWatch || watchSet.has(s.code)) &&
+    (!q || s.code.toLocaleLowerCase("tr").includes(q) || (s.name || "").toLocaleLowerCase("tr").includes(q)));
   rows.sort((a, b) => {
     const va = a[ovSortKey], vb = b[ovSortKey];
     if (va == null && vb == null) return 0;
@@ -617,12 +739,15 @@ function renderOverviewTable() {
   const rows = ovRows();
   document.getElementById("ovBody").innerHTML = rows.map(s => `
     <tr data-code="${s.code}" tabindex="0" class="${selected === s.code ? "sel" : ""}" aria-label="${esc(s.code)} seç">
+      <td class="l">${starHtml(s.code)}</td>
       <td class="l tcode">${s.code}</td>
       <td class="l tname">${esc(s.name)}</td>
       <td class="${cls(s.revYoY)}">${pct(s.revYoY)}</td>
       <td>${s.opMargin == null ? '<span class="na">—</span>' : nf1.format(s.opMargin) + "%"}</td>
       <td class="${cls(s.netCash)}">${money(s.netCash)}</td>
       <td class="${cls(s.fcfTtm)}">${money(s.fcfTtm)}</td>
+      <td>${techBadge(s, true)}</td>
+      <td class="${cls(s.rs3m)}">${pct(s.rs3m)}</td>
       <td>${ringSvg(s.score)}</td>
     </tr>`).join("");
 }
@@ -645,6 +770,9 @@ function renderCompanyPanel(code) {
       <div class="score-big" style="color:${scoreColor(s.score)}">${s.score}<small> / 100</small></div>
       ${gaugeSvg(s.score)}
     </div>
+    ${(() => { const qd = quadrant(s); return qd ? `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <span class="badge ${qd.cls}">${qd.t}</span>
+      <span style="font-size:11.5px;color:var(--muted)">${qd.r}</span></div>` : ""; })()}
     <div class="trend-title">Gelir Trendi</div>
     ${trendChart(s.revQ || [])}
     <table class="facts">
@@ -655,6 +783,8 @@ function renderCompanyPanel(code) {
   renderOverviewTable();
 }
 document.getElementById("ovq").addEventListener("input", renderOverviewTable);
+document.getElementById("ovWatch").addEventListener("change", renderOverviewTable);
+document.getElementById("fWatch").addEventListener("change", renderFullTable);
 document.getElementById("ovBody").addEventListener("click", e => {
   const tr = e.target.closest("tr[data-code]"); if (tr) renderCompanyPanel(tr.dataset.code);
 });
@@ -693,7 +823,8 @@ function miniSpark(series) {
 function renderFullTable() {
   const q = (document.getElementById("fq").value || "").trim().toLocaleLowerCase("tr");
   const sec = document.getElementById("sectorSel").value;
-  let rows = stocks.filter(s => (!sec || s.sectorTr === sec) &&
+  const onlyWatch = document.getElementById("fWatch").checked;
+  let rows = stocks.filter(s => (!sec || s.sectorTr === sec) && (!onlyWatch || watchSet.has(s.code)) &&
     (!q || s.code.toLocaleLowerCase("tr").includes(q) || (s.name || "").toLocaleLowerCase("tr").includes(q)));
   rows.sort((a, b) => {
     if (fSortKey === "code") return fSortDir * a.code.localeCompare(b.code, "tr");
@@ -705,6 +836,7 @@ function renderFullTable() {
   document.getElementById("countNote").textContent = rows.length + " hisse gösteriliyor";
   document.getElementById("fullBody").innerHTML = rows.map(s => `
     <tr data-code="${s.code}" tabindex="0" aria-label="${esc(s.code)} detayını aç">
+      <td class="l">${starHtml(s.code)}</td>
       <td class="l"><span class="tcode">${s.code}</span><div class="tname">${esc(s.name)}</div></td>
       <td class="l" style="font-size:11.5px;color:var(--ink-2)">${esc(s.sectorTr)}</td>
       <td>${money(s.marketCap)}</td>
@@ -716,6 +848,8 @@ function renderFullTable() {
       <td class="${cls(s.fcfTtm)}">${money(s.fcfTtm)}</td>
       <td>${ratio(s.debtToEquity)}</td>
       <td>${s.pe == null ? '<span class="na">—</span>' : nf1.format(s.pe)}</td>
+      <td>${techBadge(s, true)}</td>
+      <td class="${cls(s.rs3m)}">${pct(s.rs3m)}</td>
       <td>${ringSvg(s.score)}</td>
       <td class="sparkcell">${miniSpark(s.revQ)}</td>
     </tr>`).join("");
@@ -757,6 +891,11 @@ function renderCompare() {
     ["SNA (12 Ay)", s => s.fcfTtm, money],
     ["Net Nakit / (Borç)", s => s.netCash, money],
     ["Skor", s => s.score, v => v == null ? "—" : String(v)],
+    ["Getiri (3 Ay)", s => s.tech?.ret3m, pct],
+    ["Relatif Güç 3A (XU100'e karşı)", s => s.tech?.rs3m, pct],
+    ["Günlük Oynaklık (ATR%)", s => s.tech?.atrPct, v => v == null ? "—" : "±%" + nf1.format(v)],
+    ["RSI (14)", s => s.tech?.rsi, v => v == null ? "—" : nf1.format(v)],
+    ["Teknik Puan (0-6)", s => s.tech?.pts, v => v == null ? "—" : String(v)],
   ];
   document.getElementById("cmpBody").innerHTML = metrics.map(([title, get, fmt]) => {
     const vals = sel.map(get);
@@ -782,6 +921,57 @@ document.getElementById("cmpq").addEventListener("change", e => {
   }
 });
 
+/* ---------- pozisyon hesaplayıcı ---------- */
+(function positionTab() {
+  const sel = document.getElementById("posStock");
+  const withTech = stocks.filter(s => s.tech && s.tech.atr);
+  sel.innerHTML = withTech.map(s => `<option value="${s.code}">${s.code} — ${esc(s.name).slice(0, 34)}</option>`).join("");
+  const $ = id => document.getElementById(id);
+  const moneyTR = v => "₺" + nf0.format(Math.round(v));
+  function calc() {
+    const s = stocks.find(x => x.code === sel.value);
+    if (!s || !s.tech) { $("posOut").innerHTML = '<div class="na">Teknik veri yok</div>'; return; }
+    const t = s.tech;
+    const acct = parseFloat($("posAcct").value) || 0;
+    const riskPct = parseFloat($("posRiskPct").value) || 0;
+    const k = parseFloat($("posK").value) || 1.5;
+    $("posKVal").textContent = nf1.format(k);
+    if (!$("posEntry").dataset.touched || $("posEntry").dataset.code !== s.code) {
+      $("posEntry").value = t.close; $("posEntry").dataset.code = s.code;
+    }
+    const entry = parseFloat($("posEntry").value) || t.close;
+    const riskTL = acct * riskPct / 100;
+    const atrStop = entry - k * t.atr;
+    const stop = Math.max(atrStop, 0.01);
+    const dist = entry - stop;
+    if (acct <= 0 || riskTL <= 0 || dist <= 0) { $("posOut").innerHTML = '<div class="na">Geçerli değerler girin</div>'; return; }
+    const shares = Math.floor(riskTL / dist);
+    const posTL = shares * entry;
+    const swingNote = t.swingLow < entry ? ` · son salınım düşüğü ₺${nf2.format(t.swingLow)} (alternatif stop referansı)` : "";
+    const liqRatio = t.avgVolTL ? posTL / t.avgVolTL * 100 : null;
+    $("posOut").innerHTML = `
+      <h2 style="margin:0 0 2px;font-size:17px">${s.code} · ${esc(s.name).slice(0, 40)}</h2>
+      <div style="font-size:12px;color:var(--muted)">Son kapanış ₺${nf2.format(t.close)} · ATR(14) ₺${nf2.format(t.atr)} (±%${nf1.format(t.atrPct)}/gün)</div>
+      <div class="pos-hero">${shares > 0 ? nf0.format(shares) + " adet · " + moneyTR(posTL) : "—"}</div>
+      <table class="facts">
+        <tr><td>Riske edilen tutar</td><td>${moneyTR(riskTL)} (${nf1.format(riskPct)}%)</td></tr>
+        <tr><td>Stop önerisi (giriş − ${nf1.format(k)}×ATR)</td><td>₺${nf2.format(stop)} (−%${nf1.format(dist / entry * 100)})${swingNote}</td></tr>
+        <tr><td>1R hedef</td><td>₺${nf2.format(entry + dist)}</td></tr>
+        <tr><td>2R hedef</td><td>₺${nf2.format(entry + 2 * dist)}</td></tr>
+        <tr><td>3R hedef</td><td>₺${nf2.format(entry + 3 * dist)}</td></tr>
+        <tr><td>Pozisyon / hesap</td><td>%${nf1.format(acct ? posTL / acct * 100 : 0)}</td></tr>
+        <tr><td>Pozisyon / günlük hacim</td><td>${liqRatio == null ? "—" : "%" + nf2.format(liqRatio)}</td></tr>
+      </table>
+      <div class="pos-warn" style="${liqRatio != null && liqRatio > 1 ? "display:block" : ""}">⚠️ Likidite uyarısı: bu pozisyon,
+        hissenin 20 günlük ortalama işlem hacminin %1'ini aşıyor — bu boyut bu hissede zor alınıp satılır,
+        giriş/çıkışta fiyatı kaydırabilirsiniz.</div>`;
+  }
+  ["posAcct", "posRiskPct", "posK"].forEach(id => $(id).addEventListener("input", calc));
+  $("posEntry").addEventListener("input", () => { $("posEntry").dataset.touched = "1"; calc(); });
+  sel.addEventListener("change", () => { delete $("posEntry").dataset.touched; calc(); });
+  if (withTech.length) calc();
+})();
+
 /* ---------- methodology ---------- */
 document.getElementById("methodBox").innerHTML = `
   <h3>Veri kaynağı</h3>
@@ -799,6 +989,30 @@ document.getElementById("methodBox").innerHTML = `
   </ul>
   <p>Verisi olmayan boyut nötr (50. yüzdelik) sayılır; bu yüzden bankalarda skor ağırlıkla büyüme ve marjdan gelir.
   Skor bir kalite sıralamasıdır, alım-satım sinyali değildir.</p>
+  <h3>Teknik durum nasıl hesaplanır?</h3>
+  <p>Her hisse için 2 yıllık <b>günlük</b> bar verisinden hesaplanır (gün içi al-sat aracı değildir).
+  Teknik puan 0-6 arasıdır ve kurallar tamamen mekaniktir:</p>
+  <ul>
+    <li><code>+2</code> fiyat SMA200'ün üstünde · <code>+1</code> fiyat SMA50'nin üstünde</li>
+    <li><code>+1</code> RSI(14) 45-70 bandında · <code>+1</code> MACD histogramı pozitif</li>
+    <li><code>+1</code> 3 aylık relatif güç XU100'ün üzerinde</li>
+  </ul>
+  <p>Puan ≥ 4 → <b>YUKARI</b>, ≤ 2 → <b>AŞAĞI</b>, arası → <b>NÖTR</b>.
+  Piyasa rejimi rozeti XU100'ün SMA50/SMA200'e göre konumudur.</p>
+  <h3>Kadran etiketi (temel × teknik)</h3>
+  <ul>
+    <li><b>RADARDA</b>: temel skor ≥ 60 ve teknik YUKARI — temel ve momentum uyumlu</li>
+    <li><b>İZLEMEDE</b>: temel güçlü, teknik NÖTR</li>
+    <li><b>ERKEN</b>: temel güçlü, teknik AŞAĞI — trend dönüş teyidi bekleniyor</li>
+    <li><b>SPEKÜLATİF</b>: temel zayıf, teknik YUKARI — momentum var, temel desteği yok</li>
+    <li><b>ZAYIF / UZAK DUR</b>: temel zayıf, teknik nötr/aşağı</li>
+  </ul>
+  <p>Bu etiketler mekanik kural çıktısıdır; hiçbiri geriye dönük test edilmiş bir stratejinin
+  parçası değildir ve hiçbir performans iddiası taşımaz. <b>Yatırım tavsiyesi değildir.</b></p>
+  <h3>Pozisyon hesaplayıcı formülü</h3>
+  <p><code>risk = hesap × risk%</code> · <code>stop = giriş − k×ATR(14)</code> ·
+  <code>adet = risk / (giriş − stop)</code>. Likidite uyarısı, pozisyon 20 günlük ortalama
+  işlem hacminin %1'ini aşarsa görünür. Hesaplama tarayıcıda yapılır, hiçbir veri gönderilmez.</p>
   <h3>Bilinen sınırlamalar</h3>
   <ul>
     <li>Bankalar ve finansal kuruluşlarda "gelir" Total Revenue kalemidir; capex/FCF anlamlı olmadığından boş bırakılır.</li>
@@ -806,6 +1020,58 @@ document.getElementById("methodBox").innerHTML = `
     <li>yfinance bazı şirketlerde ara çeyrekleri atlayabilir; büyüme oranları bu yüzden daima tarih eşleştirmeli hesaplanır.</li>
   </ul>
   <p>Bu pano bilgilendirme amaçlıdır; yatırım tavsiyesi değildir.</p>`;
+
+/* ---------- teknik durum: 60g grafik + durum satırları ---------- */
+function priceChart(t) {
+  const n = t.c60.length;
+  if (n < 10) return '<div class="na">Fiyat serisi yok</div>';
+  const w = 420, h = 170, padL = 8, padR = 8, padT = 10, padB = 18;
+  const all = [...t.c60, ...t.s50_60, ...t.s200_60].filter(v => v != null);
+  const min = Math.min(...all), max = Math.max(...all), rng = (max - min) || 1;
+  const x = i => padL + i * (w - padL - padR) / (n - 1);
+  const y = v => padT + (max - v) * (h - padT - padB) / rng;
+  const path = (arr, col, wd, dash) => {
+    let d = "", started = false;
+    arr.forEach((v, i) => { if (v == null) { started = false; return; }
+      d += (started ? "L" : "M") + x(i).toFixed(1) + "," + y(v).toFixed(1); started = true; });
+    return d ? `<path d="${d}" fill="none" stroke="${col}" stroke-width="${wd}"${dash ? ` stroke-dasharray="${dash}"` : ""}/>` : "";
+  };
+  let ticks = "";
+  (t.ticks || []).forEach(([i, lbl]) => {
+    ticks += `<text x="${x(i).toFixed(1)}" y="${h - 4}" text-anchor="middle" font-size="9.5" fill="var(--muted)">${lbl}</text>`;
+  });
+  const lastY = y(t.c60[n - 1]);
+  return `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto;display:block">
+    ${path(t.s200_60, "var(--red)", 1.4, "4 3")}
+    ${path(t.s50_60, "var(--amber)", 1.4, "4 3")}
+    ${path(t.c60, "var(--cyan)", 2)}
+    <circle cx="${x(n - 1).toFixed(1)}" cy="${lastY.toFixed(1)}" r="3.5" fill="var(--cyan)" style="filter:drop-shadow(0 0 4px var(--cyan))"/>
+    ${ticks}</svg>
+  <div class="legend"><span><span class="sw" style="background:var(--cyan)"></span>Kapanış</span>
+    <span><span class="sw" style="background:var(--amber)"></span>SMA50</span>
+    <span><span class="sw" style="background:var(--red)"></span>SMA200</span></div>`;
+}
+function techRows(t) {
+  const P = v => (v > 0 ? "+" : "") + nf1.format(v) + "%";
+  const rows = [];
+  const trendUp = t.sma50 != null && t.sma200 != null && t.close > t.sma50 && t.sma50 > t.sma200;
+  const trendDn = t.sma50 != null && t.sma200 != null && t.close < t.sma50 && t.sma50 < t.sma200;
+  const cross = t.goldenCross === 1 ? " · son 20 günde golden cross" : t.goldenCross === -1 ? " · son 20 günde death cross" : "";
+  rows.push(["Trend", trendUp ? ["b-up", "YUKARI"] : trendDn ? ["b-down", "AŞAĞI"] : ["b-flat", "KARIŞIK"],
+    `fiyat SMA50'nin ${t.close > t.sma50 ? "üstünde" : "altında"}, SMA200'ün ${t.close > t.sma200 ? "üstünde" : "altında"}${cross}`]);
+  const rsiB = t.rsi > 70 ? ["b-warn", "AŞIRI ALIM"] : t.rsi < 30 ? ["b-warn", "AŞIRI SATIM"] : t.rsi >= 50 ? ["b-up", "GÜÇLÜ"] : ["b-flat", "ZAYIF"];
+  const macdTxt = t.macdCross === 1 ? "MACD son 5 günde yukarı kesti" : t.macdCross === -1 ? "MACD son 5 günde aşağı kesti" : `MACD historam ${t.macdHist > 0 ? "pozitif" : "negatif"}`;
+  rows.push(["Momentum", rsiB, `RSI ${nf1.format(t.rsi)} · ${macdTxt}`]);
+  rows.push(["Volatilite", t.atrPct > 4 ? ["b-warn", "YÜKSEK"] : ["b-flat", "NORMAL"],
+    `bu hisse günde ortalama ±%${nf1.format(t.atrPct)} oynar (ATR ₺${nf2.format(t.atr)})`]);
+  rows.push(["Seviyeler", t.dHi52 > -5 ? ["b-up", "ZİRVEYE YAKIN"] : t.dLo52 < 15 ? ["b-warn", "DİBE YAKIN"] : ["b-flat", "ARADA"],
+    `52h zirveye ${P(t.dHi52)} · 52h dibe ${P(t.dLo52)} · son salınım: ₺${nf2.format(t.swingLow)}–₺${nf2.format(t.swingHigh)}`]);
+  rows.push(["Relatif güç", t.rs3m > 0 ? ["b-up", "ENDEKS ÜSTÜ"] : ["b-down", "ENDEKS ALTI"],
+    `3 ayda hisse ${P(t.ret3m)}, XU100'e göre fark ${P(t.rs3m)}`]);
+  rows.push(["Hacim", ["b-flat", money(t.avgVolTL) + "/gün"], `20 günlük ortalama işlem hacmi${t.beta != null ? ` · beta ${nf2.format(t.beta)}` : ""}`]);
+  return rows.map(([l, [bc, bt], why]) => `<div class="tech-row">
+    <span class="lbl">${l}</span><span class="badge ${bc}">${bt}</span><span class="why">${why}</span></div>`).join("");
+}
 
 /* ---------- detail sheet (from v1, glass-styled) ---------- */
 const tip = document.getElementById("tip");
@@ -872,6 +1138,18 @@ function openDetail(code) {
       <div class="k"><div class="lbl">FCF · 12 Ay</div><div class="val ${cls(s.fcfTtm)}">${money(s.fcfTtm)}</div><div class="sub">${fcfQ != null ? "son çeyrek " + money(fcfQ) : ""}</div></div>
       <div class="k"><div class="lbl">F/K · PD/DD</div><div class="val">${s.pe == null ? "—" : nf1.format(s.pe)}${s.pb != null ? " · " + nf1.format(s.pb) : ""}</div><div class="sub">fiyat çarpanları</div></div>
     </div>
+    ${s.tech ? `<div class="section-title">Teknik Durum · günlük bar, gün içi araç değildir</div>
+    <div class="grid2">
+      <div class="panel"><h4>Fiyat · 60 gün</h4>${priceChart(s.tech)}</div>
+      <div class="panel">
+        <div class="tech-rows">${techRows(s.tech)}</div>
+        ${(() => { const qd = quadrant(s); return qd ? `<div class="quad-card">
+          <span class="badge ${qd.cls}">${qd.t}</span>
+          <span style="font-size:12px;color:var(--ink-2);margin-left:8px">${qd.r}</span>
+          <div class="note">Mekanik kural çıktısıdır, yatırım tavsiyesi değildir · kurallar Metodoloji sekmesinde</div>
+        </div>` : ""; })()}
+      </div>
+    </div>` : ""}
     <div class="section-title">Çeyreklik Gelir ve Net Kâr</div>
     <div class="grid2">
       <div class="panel"><h4>Gelir (çeyreklik)</h4>${barChart([{ label: "Gelir", values: s.revQ, color: "var(--cyan)" }])}</div>
@@ -929,7 +1207,7 @@ overlay.addEventListener("click", e => { if (e.target === overlay) closeDetail()
 document.addEventListener("keydown", e => { if (e.key === "Escape") closeDetail(); });
 
 /* ---------- tabs / views ---------- */
-const VIEWS = ["overview", "companies", "compare", "method"];
+const VIEWS = ["overview", "companies", "compare", "position", "method"];
 function showView(v) {
   VIEWS.forEach(x => document.getElementById("view-" + x).hidden = x !== v);
   document.querySelectorAll("[data-view]").forEach(b => b.classList.toggle("active", b.dataset.view === v));
@@ -938,6 +1216,15 @@ document.querySelectorAll("[data-view]").forEach(b => b.addEventListener("click"
 
 /* ---------- init ---------- */
 document.getElementById("fxVal").textContent = nf2.format(DATA.fx?.USD ?? 0);
+if (MARKET.regime) {
+  const rg = MARKET.regime;
+  const conf = rg === "bull" ? ["b-up", "BOĞA"] : rg === "bear" ? ["b-down", "AYI"] : ["b-flat", "YATAY"];
+  const span = document.createElement("span");
+  span.className = "badge regime " + conf[0];
+  span.title = `XU100 ${nf0.format(MARKET.close)} · SMA200'ün ${MARKET.close > MARKET.sma200 ? "üstünde" : "altında"} · 3 aylık getiri ${pct(MARKET.ret3m)}`;
+  span.textContent = "XU100: " + conf[1];
+  document.querySelector(".pill").insertAdjacentElement("beforebegin", span);
+}
 document.getElementById("asof").textContent = "Son güncelleme: " + DATA.asOf;
 document.getElementById("periodLbl").textContent = LATEST ? "Ç" + Math.ceil(parseInt(LATEST.slice(5, 7)) / 3) + " " + LATEST.slice(0, 4) : "";
 document.getElementById("footNote").textContent = "Veri: Yahoo Finance (yfinance) · Mynet Finans ile çapraz doğrulanmış fiyatlar · Skor metodolojisi ve sınırlamalar için Metodoloji sekmesine bakın · Bu pano bilgilendirme amaçlıdır; yatırım tavsiyesi değildir.";

@@ -29,6 +29,9 @@ jobs:
       - name: Veri çek (100 hisse)
         run: python fetch_bist100.py
 
+      - name: Teknik göstergeler (OHLCV + XU100)
+        run: python fetch_technical.py
+
       - name: Kur çevrimi + büyüme düzeltmeleri
         run: python fix_data.py
 

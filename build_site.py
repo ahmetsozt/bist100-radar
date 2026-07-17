@@ -33,6 +33,12 @@ if len(master) != 32:
 keys = json.load(open(p("keys.json")))
 data = json.load(open(p("bist100_final.json")))
 
+# teknik katman (fetch_technical.py çıktısı) — yoksa pano temel verilerle çalışmaya devam eder
+if os.path.exists(p("technical.json")):
+    tech = json.load(open(p("technical.json")))
+    data["tech"] = tech.get("stocks", {})
+    data["market"] = tech.get("market", {})
+
 TR_MONTHS = ["", "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
              "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"]
 now = datetime.datetime.now(ZoneInfo("Europe/Istanbul"))

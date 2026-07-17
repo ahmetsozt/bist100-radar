@@ -1,4 +1,4 @@
-# BIST 100 Finansal Radar
+# NUUK BIST Radar
 
 BIST 100 hisseleri için temel analiz panosu. İçerik **AES-256-GCM ile şifrelidir**;
 yalnızca davet edilen e-posta + şifre çiftleri panoyu tarayıcıda çözebilir.

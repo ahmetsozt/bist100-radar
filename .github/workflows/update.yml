@@ -1,0 +1,48 @@
+name: hourly-update
+
+on:
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: hourly-update
+  cancel-in-progress: false
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Bağımlılıklar
+        run: pip install --quiet yfinance cryptography requests
+
+      - name: Veri çek (100 hisse)
+        run: python fetch_bist100.py
+
+      - name: Kur çevrimi + büyüme düzeltmeleri
+        run: python fix_data.py
+
+      - name: Şifrele ve siteyi derle
+        env:
+          MASTER_KEY: ${{ secrets.MASTER_KEY }}
+        run: python build_site.py
+
+      - name: Yayınla
+        run: |
+          git config user.name "radar-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add index.html
+          git diff --cached --quiet && echo "değişiklik yok" || {
+            git commit -m "data: saatlik otomatik güncelleme"
+            git push
+          }

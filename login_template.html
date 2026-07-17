@@ -92,8 +92,8 @@
 
 <script>
 const USERS = __USERS__;
-/* Giriş kaydı webhook'u (Make.com): boşsa kayıt atlanır. IP sunucu tarafında alınır. */
-const HOOK_URL = "";
+/* Giriş kaydı webhook'u (Make.com): boşsa kayıt atlanır. */
+const HOOK_URL = "https://hook.eu2.make.com/5r8864v7r8c5vf25k8waxsj3wsjr6ceo";
 const EMAIL_SALT = "__EMAIL_SALT__";
 const PAYLOAD = { iv: "__P_IV__", ct: "__P_CT__" };
 const PBKDF2_ITERS = 310000;
@@ -155,11 +155,18 @@ document.getElementById("f").addEventListener("submit", async e => {
     const kek = await deriveKek(pw.trim(), rec.s);
     const master = await crypto.subtle.decrypt({ name: "AES-GCM", iv: b64d(rec.i) }, kek, b64d(rec.w));
     sessionStorage.setItem("radarKey", b64e(master));
-    try {
-      if (HOOK_URL) fetch(HOOK_URL, { method: "POST", mode: "no-cors", keepalive: true,
-        headers: { "Content-Type": "text/plain" },
-        body: JSON.stringify({ u: email.trim(), t: new Date().toISOString(), ua: navigator.userAgent }) });
-    } catch (_) { /* kayıt başarısız olsa da giriş engellenmez */ }
+    if (HOOK_URL) (async () => {
+      try {
+        let ip = "";
+        try {
+          const c = new AbortController(); setTimeout(() => c.abort(), 3000);
+          ip = (await (await fetch("https://api.ipify.org?format=text", { signal: c.signal })).text()).trim();
+        } catch (_) {}
+        const form = new URLSearchParams({ u: email.trim(), ua: navigator.userAgent, ip });
+        fetch(HOOK_URL, { method: "POST", mode: "no-cors", keepalive: true,
+          headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: form.toString() });
+      } catch (_) { /* kayıt başarısız olsa da giriş engellenmez */ }
+    })();
     boot(await decryptPayload(new Uint8Array(master)));
   } catch (ex) {
     err.textContent = "E-posta veya şifre hatalı.";

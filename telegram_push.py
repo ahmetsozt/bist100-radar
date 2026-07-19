@@ -17,7 +17,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 p = lambda n: os.path.join(HERE, n)
 
 TOKEN = os.environ.get("TELEGRAM_TOKEN")
-CHAT = os.environ.get("TELEGRAM_CHAT")
+# NUUK Quant grubu + "Sinyaller" topic'i (gizli değil; erişim yalnızca bot token'ıyla)
+CHAT = os.environ.get("TELEGRAM_CHAT") or "-1002388620539"
+THREAD = os.environ.get("TELEGRAM_THREAD") or "2299"
 
 
 def tr(v, d=2):
@@ -26,9 +28,11 @@ def tr(v, d=2):
 
 def send(text):
     url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
-    data = urllib.parse.urlencode({
-        "chat_id": CHAT, "text": text, "parse_mode": "HTML",
-        "disable_web_page_preview": "true"}).encode()
+    payload = {"chat_id": CHAT, "text": text, "parse_mode": "HTML",
+               "disable_web_page_preview": "true"}
+    if THREAD and str(THREAD) != "0":
+        payload["message_thread_id"] = THREAD
+    data = urllib.parse.urlencode(payload).encode()
     with urllib.request.urlopen(urllib.request.Request(url, data=data), timeout=20) as r:
         return r.status
 

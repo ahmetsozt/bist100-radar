@@ -13,9 +13,23 @@ fetch_technical.py →  2 yıllık günlük OHLCV'den teknik göstergeleri hesap
                       (SMA/RSI/MACD/ATR/relatif güç + XU100 rejimi)
 fix_data.py        →  USD/EUR raporlayanları güncel kurla TL'ye çevirir,
                       büyümeleri tarih eşleştirmeli hesaplar
-build_site.py      →  veriyi şablona gömer, MASTER_KEY ile şifreler,
-                      saat damgalı index.html üretir ve commit'ler
+compute_signals.py →  SİNYAL MOTORU: kurulum tespiti (Kırılım/Geri çekilme/Momentum/
+                      Trend devamı/Dönüş) → ATR planı → risk kapısı → RADAR/İZLE/GEÇ
+build_site.py      →  veriyi + sinyalleri şablona gömer, MASTER_KEY ile şifreler,
+                      saat damgalı index.html üretir
+telegram_push.py   →  yalnızca YENİ RADAR sinyallerini Telegram'a iletir (state:
+                      signals_sent.json ile dedup, saatlik spam olmaz)
 ```
+
+## Sinyal motoru (Fable 5 döngüsü uyarlaması)
+
+Boru hattı: **Tara → Sinyal → Plan → Risk → Karar → İlet**. Kurulum tanımları ve
+karar eşikleri panonun Metodoloji sekmesinde ve `compute_signals.py` içinde yazılıdır.
+Tümü mekanik kural çıktısıdır, geriye dönük test edilmemiştir, **yatırım tavsiyesi
+değildir** — sistem kurulumu bulur, kararı insan verir.
+
+Telegram iletimi için iki GitHub Actions secret gerekir (yoksa adım sessizce atlanır):
+`TELEGRAM_TOKEN` (bot token) ve `TELEGRAM_CHAT` (hedef chat/kanal id).
 
 Veri çekimi başarısız olursa (ör. kaynak erişilemezse) site **son başarılı
 veriyle** kalır; bir sonraki saat yeniden denenir. Başlıktaki saat damgası her

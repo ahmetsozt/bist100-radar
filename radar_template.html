@@ -262,6 +262,51 @@
     padding: 8px 12px; color: var(--amber); background: rgba(255,200,87,.06); border-radius: 0 8px 8px 0; display: none; }
   .pos-note { color: var(--muted); font-size: 11.5px; margin-top: 14px; line-height: 1.6; }
 
+  /* ---- sinyaller (Fable 5 esintili) ---- */
+  .loop-strip { display: flex; align-items: stretch; gap: 0; flex-wrap: wrap; margin: 4px 0 18px;
+    border: 1px solid var(--stroke); border-radius: 14px; background: var(--glass); overflow: hidden;
+    backdrop-filter: blur(16px); }
+  .loop-step { flex: 1 1 120px; min-width: 110px; padding: 12px 14px; position: relative;
+    border-right: 1px solid var(--stroke-soft); }
+  .loop-step:last-child { border-right: none; }
+  .loop-step .n { font-size: 11px; font-weight: 800; color: var(--lime); letter-spacing: .1em; }
+  .loop-step .t { font-size: 13px; font-weight: 700; margin: 3px 0 2px; }
+  .loop-step .d { font-size: 11px; color: var(--muted); line-height: 1.4; }
+  .loop-step::after { content: "→"; position: absolute; right: -8px; top: 50%; transform: translateY(-50%);
+    color: var(--cyan); font-weight: 800; z-index: 2; background: var(--surface); padding: 0 1px; }
+  .loop-step:last-child::after { content: none; }
+  @media (max-width: 720px) { .loop-step::after { content: none; } }
+
+  .sig-head { display: flex; align-items: center; gap: 12px; margin: 4px 0 12px; flex-wrap: wrap; }
+  .sig-head select { background: rgba(4,16,26,.5); color: var(--ink); border: 1px solid var(--stroke);
+    border-radius: 10px; padding: 8px 12px; font: inherit; font-size: 13px; }
+  .sig-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+  .sig-card { background: var(--glass); border: 1px solid var(--stroke); border-radius: 14px; padding: 16px;
+    backdrop-filter: blur(14px); box-shadow: inset 0 1px 0 rgba(255,255,255,.06); position: relative; }
+  .sig-card.radar { border-color: rgba(200,245,66,.4); }
+  .sig-top { display: flex; align-items: flex-start; gap: 10px; }
+  .sig-top .code { font-size: 19px; font-weight: 800; letter-spacing: .02em; }
+  .sig-top .nm { font-size: 11.5px; color: var(--ink-2); max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sig-badges { margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+  .sig-setup { display: inline-block; font-size: 11px; font-weight: 700; color: var(--cyan);
+    border: 1px solid rgba(45,226,255,.35); border-radius: 7px; padding: 2px 8px; }
+  .strength-wrap { margin: 12px 0 10px; }
+  .strength-bar { height: 7px; border-radius: 5px; background: rgba(140,220,255,.1); overflow: hidden; }
+  .strength-bar span { display: block; height: 100%; border-radius: 5px;
+    background: linear-gradient(90deg, var(--cyan), var(--lime)); }
+  .strength-lbl { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-bottom: 5px; }
+  .sig-plan { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin: 10px 0; }
+  .sig-plan .cell { background: rgba(4,16,26,.35); border: 1px solid var(--stroke-soft); border-radius: 9px; padding: 8px 10px; }
+  .sig-plan .cell .k { font-size: 10px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+  .sig-plan .cell .v { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; margin-top: 2px; }
+  .sig-plan .cell.stop .v { color: var(--red); }
+  .sig-plan .cell.tgt .v { color: var(--pos); }
+  .sig-levels { display: flex; gap: 10px; font-size: 11.5px; color: var(--ink-2); margin: 6px 0 2px; flex-wrap: wrap; font-variant-numeric: tabular-nums; }
+  .sig-reasons { margin: 10px 0 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+  .sig-reasons li { font-size: 11.5px; color: var(--ink-2); padding-left: 16px; position: relative; }
+  .sig-reasons li::before { content: "✓"; position: absolute; left: 0; color: var(--lime); }
+  .sig-flags { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
+
   /* ---- detail overlay (glass) ---- */
   .overlay { position: fixed; inset: 0; background: rgba(2,10,18,.72); backdrop-filter: blur(6px); display: none; z-index: 20; overflow-y: auto; padding: 4vh 16px; }
   .overlay.open { display: block; }
@@ -327,6 +372,9 @@
     <button data-view="compare" aria-label="Karşılaştır" title="Karşılaştır">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v18"/><path d="M5 7l-3 6a3.5 3.5 0 0 0 7 0Z"/><path d="M19 7l-3 6a3.5 3.5 0 0 0 7 0Z"/><path d="M6 7h12"/></svg>
     </button>
+    <button data-view="signals" aria-label="Sinyaller" title="Sinyaller">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg>
+    </button>
     <button data-view="position" aria-label="Pozisyon" title="Pozisyon">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
     </button>
@@ -347,6 +395,7 @@
       <button data-view="overview" class="active" role="tab">Genel Bakış</button>
       <button data-view="companies" role="tab">Şirketler</button>
       <button data-view="compare" role="tab">Karşılaştır</button>
+      <button data-view="signals" role="tab">Sinyaller</button>
       <button data-view="position" role="tab">Pozisyon</button>
       <button data-view="method" role="tab">Metodoloji</button>
     </div>
@@ -432,6 +481,22 @@
         <div class="cmp-body" id="cmpBody"></div>
         <p class="hint">Kod yazıp Enter'a basın. Çubuklar her metrikte seçili hisselerin en büyüğüne oranlanır.</p>
       </div>
+    </section>
+
+    <!-- ============ SIGNALS ============ -->
+    <section id="view-signals" hidden>
+      <div class="loop-strip" id="loopStrip"></div>
+      <div class="sig-head">
+        <h2 style="margin:0;font-size:17px">İşlem Sinyalleri</h2>
+        <span id="sigCounts" class="count-note"></span>
+        <select id="sigFilter" aria-label="Sinyal filtresi" style="margin-left:auto">
+          <option value="">Tümü (RADAR + İZLE)</option>
+          <option value="RADAR">Yalnızca RADAR</option>
+          <option value="İZLE">Yalnızca İZLE</option>
+        </select>
+      </div>
+      <div class="sig-grid" id="sigGrid"></div>
+      <p class="footer-note" id="sigNote"></p>
     </section>
 
     <!-- ============ POSITION ============ -->
@@ -924,6 +989,68 @@ document.getElementById("cmpq").addEventListener("change", e => {
   }
 });
 
+/* ---------- sinyaller (Fable 5 döngüsü) ---------- */
+(function signalsTab() {
+  const SIGNALS = DATA.signals || [];
+  const counts = DATA.signalCounts || {};
+  const LOOP = [
+    ["1", "TARA", "100 hisse saatlik teknik + hacim"],
+    ["2", "SİNYAL", "kurulum tespiti, olasılık skoru"],
+    ["3", "PLAN", "giriş · ATR stop · 1R/2R/3R"],
+    ["4", "RİSK", "likidite · volatilite · rejim"],
+    ["5", "KARAR", "RADAR / İZLE / GEÇ"],
+  ];
+  document.getElementById("loopStrip").innerHTML = LOOP.map(([n, t, d]) =>
+    `<div class="loop-step"><div class="n">${n}</div><div class="t">${t}</div><div class="d">${d}</div></div>`).join("");
+  document.getElementById("sigCounts").textContent =
+    `${counts.radar || 0} RADAR · ${counts.izle || 0} İZLE · toplam ${counts.total || 0} kurulum`;
+
+  const decCls = d => d === "RADAR" ? "b-up" : "b-flat";
+  function card(s) {
+    return `<div class="sig-card ${s.decision === "RADAR" ? "radar" : ""}">
+      <div class="sig-top">
+        <div><div class="code">${s.code}</div><div class="nm">${esc(s.name)}</div></div>
+        <div class="sig-badges">
+          <span class="badge ${decCls(s.decision)}">${s.decision}</span>
+          <span class="sig-setup">${s.setup}</span>
+        </div>
+      </div>
+      <div class="strength-wrap">
+        <div class="strength-lbl"><span>Kurulum gücü</span><span>${s.strength}/100</span></div>
+        <div class="strength-bar"><span style="width:${s.strength}%"></span></div>
+      </div>
+      <div class="sig-plan">
+        <div class="cell"><div class="k">Giriş</div><div class="v">₺${nf2.format(s.entry)}</div></div>
+        <div class="cell stop"><div class="k">Stop</div><div class="v">₺${nf2.format(s.stop)}</div></div>
+        <div class="cell tgt"><div class="k">Hedef 2R</div><div class="v">₺${nf2.format(s.t2)}</div></div>
+      </div>
+      <div class="sig-levels">
+        <span>Risk: <b class="neg">−%${nf1.format(s.riskPct)}</b></span>
+        <span>1R ₺${nf2.format(s.t1)}</span>
+        <span>3R ₺${nf2.format(s.t3)}</span>
+        <span>Temel skor ${s.fscore}</span>
+        ${s.atrPct != null ? `<span>ATR ±%${nf1.format(s.atrPct)}</span>` : ""}
+      </div>
+      <ul class="sig-reasons">${(s.reasons || []).map(r => `<li>${esc(r)}</li>`).join("")}</ul>
+      ${(s.riskFlags && s.riskFlags.length) ? `<div class="sig-flags">${s.riskFlags.map(f =>
+        `<span class="badge b-warn">${esc(f)}</span>`).join("")}</div>` : ""}
+    </div>`;
+  }
+  function render() {
+    const f = document.getElementById("sigFilter").value;
+    const rows = SIGNALS.filter(s => !f || s.decision === f);
+    document.getElementById("sigGrid").innerHTML = rows.length
+      ? rows.map(card).join("")
+      : '<div class="na" style="padding:20px">Bu filtrede kurulum yok.</div>';
+  }
+  document.getElementById("sigFilter").addEventListener("change", render);
+  document.getElementById("sigNote").textContent =
+    "Sinyaller günlük bar verisinden üretilen MEKANİK kurulum tespitleridir; olasılık iddiası taşımaz, " +
+    "geriye dönük test edilmemiştir ve yatırım tavsiyesi DEĞİLDİR. Nihai karar ve emir sizindir. " +
+    "Kurulum tanımları için Metodoloji sekmesine bakın.";
+  render();
+})();
+
 /* ---------- pozisyon hesaplayıcı ---------- */
 (function positionTab() {
   const sel = document.getElementById("posStock");
@@ -1012,6 +1139,22 @@ document.getElementById("methodBox").innerHTML = `
   </ul>
   <p>Bu etiketler mekanik kural çıktısıdır; hiçbiri geriye dönük test edilmiş bir stratejinin
   parçası değildir ve hiçbir performans iddiası taşımaz. <b>Yatırım tavsiyesi değildir.</b></p>
+  <h3>Sinyal motoru — kurulum tanımları</h3>
+  <p>Sinyaller 5 aşamalı mekanik döngüden geçer: <b>Tara → Sinyal → Plan → Risk → Karar</b>.
+  Her hisse için en güçlü kurulum seçilir (confluence puanı ≥ 50):</p>
+  <ul>
+    <li><b>Kırılım</b>: fiyat 20 günlük zirveyi/52h zirveye yakın seviyeyi test/kırar, RSI güçlü</li>
+    <li><b>Geri çekilme</b>: yükseliş diziliminde (SMA50&gt;SMA200) RSI 40-55 bölgesine sarkma</li>
+    <li><b>Momentum</b>: MACD yukarı kesişimi + RSI 50-70 + pozitif histogram</li>
+    <li><b>Trend devamı</b>: fiyat &gt; SMA50 &gt; SMA200, RSI sağlıklı, relatif güç pozitif</li>
+    <li><b>Dönüş</b> (yüksek risk, puanı tavanlı): 52h dibe yakın + RSI dipten dönüş</li>
+  </ul>
+  <p><b>Risk kapısı:</b> günlük ortalama hacim &lt; 50 mn ₺ veya ATR &gt; ±%8 olan hisseler bloke edilir;
+  ayı rejiminde long kurulumların gücü düşürülür. <b>Plan:</b> giriş = son kapanış, stop = giriş − 1,5×ATR,
+  hedefler 1R/2R/3R. <b>Karar:</b> güç ≥ 70 ve temel skor ≥ 55 → <code>RADAR</code>; güç ≥ 55 → <code>İZLE</code>;
+  aksi halde <code>GEÇ</code> (yayınlanmaz).</p>
+  <p>Bu etiketlerin hiçbiri kazanç olasılığı iddiası taşımaz ve geriye dönük test edilmemiştir.
+  Sistem kurulumu bulur; kararı ve emri siz verirsiniz. <b>Yatırım tavsiyesi değildir.</b></p>
   <h3>Pozisyon hesaplayıcı formülü</h3>
   <p><code>risk = hesap × risk%</code> · <code>stop = giriş − k×ATR(14)</code> ·
   <code>adet = risk / (giriş − stop)</code>. Likidite uyarısı, pozisyon 20 günlük ortalama
@@ -1210,7 +1353,7 @@ overlay.addEventListener("click", e => { if (e.target === overlay) closeDetail()
 document.addEventListener("keydown", e => { if (e.key === "Escape") closeDetail(); });
 
 /* ---------- tabs / views ---------- */
-const VIEWS = ["overview", "companies", "compare", "position", "method"];
+const VIEWS = ["overview", "companies", "compare", "signals", "position", "method"];
 function showView(v) {
   VIEWS.forEach(x => document.getElementById("view-" + x).hidden = x !== v);
   document.querySelectorAll("[data-view]").forEach(b => b.classList.toggle("active", b.dataset.view === v));

@@ -39,6 +39,12 @@ if os.path.exists(p("technical.json")):
     data["tech"] = tech.get("stocks", {})
     data["market"] = tech.get("market", {})
 
+# sinyal motoru çıktısı (compute_signals.py)
+if os.path.exists(p("signals.json")):
+    sg = json.load(open(p("signals.json")))
+    data["signals"] = sg.get("signals", [])
+    data["signalCounts"] = sg.get("counts", {})
+
 TR_MONTHS = ["", "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
              "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"]
 now = datetime.datetime.now(ZoneInfo("Europe/Istanbul"))

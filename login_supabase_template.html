@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>NUUK BIST Radar · Yatırımcı Girişi</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg-0: #04101a; --bg-1: #071a29;
+    --glass: linear-gradient(150deg, rgba(151,222,255,.10), rgba(151,222,255,.03) 45%, rgba(20,60,90,.06));
+    --stroke: rgba(140,220,255,.18);
+    --ink: #eaf6ff; --ink-2: #9fc2d8; --muted: #628aa3;
+    --cyan: #2de2ff; --lime: #c8f542; --red: #ff6b7a; --pos: #4ade80;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; display: grid; place-items: center;
+    color: var(--ink); font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background:
+      radial-gradient(1000px 600px at 80% -10%, rgba(45,226,255,.14), transparent 60%),
+      radial-gradient(900px 700px at -10% 40%, rgba(18,168,207,.10), transparent 55%),
+      radial-gradient(700px 500px at 60% 110%, rgba(200,245,66,.06), transparent 60%),
+      linear-gradient(180deg, var(--bg-1), var(--bg-0) 45%);
+    padding: 24px;
+  }
+  .rings { position: fixed; top: -220px; right: -140px; width: 640px; height: 640px; pointer-events: none; opacity: .45; }
+  .card {
+    position: relative; z-index: 1; width: 100%; max-width: 400px;
+    background: var(--glass); border: 1px solid var(--stroke); border-radius: 20px;
+    backdrop-filter: blur(20px) saturate(140%); -webkit-backdrop-filter: blur(20px) saturate(140%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.09), 0 24px 60px rgba(0,8,16,.6);
+    padding: 32px 30px 28px;
+  }
+  .logo { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; flex-wrap: wrap; }
+  .nuuk { font-family: "Arial Black","Avenir Next Heavy",system-ui,sans-serif; font-weight: 900;
+    font-size: 30px; letter-spacing: -0.01em; color: #fff; transform: scaleY(1.06); display: inline-block; line-height: 1; }
+  .nuuk .nd { color: #8b939c; }
+  h1 { font-size: 19px; margin: 0; font-weight: 700; color: var(--ink); }
+  .sub { color: var(--ink-2); font-size: 13px; margin: 4px 0 20px; }
+  .tabs { display: flex; gap: 6px; margin-bottom: 18px; background: rgba(4,16,26,.5); border: 1px solid var(--stroke); border-radius: 12px; padding: 4px; }
+  .tabs button { flex: 1; background: none; border: none; color: var(--ink-2); font: inherit; font-weight: 600;
+    font-size: 13px; padding: 9px; border-radius: 9px; cursor: pointer; }
+  .tabs button.on { background: linear-gradient(90deg, var(--cyan), var(--lime)); color: #06131f; font-weight: 800; }
+  label { display: block; font-size: 12px; color: var(--ink-2); margin: 12px 0 6px; letter-spacing: .04em; }
+  input { width: 100%; background: rgba(4,16,26,.55); border: 1px solid var(--stroke); color: var(--ink);
+    border-radius: 12px; padding: 12px 14px; font: inherit; font-size: 14px; }
+  input::placeholder { color: var(--muted); }
+  input:focus-visible { outline: 2px solid var(--cyan); border-color: transparent; }
+  button.primary { width: 100%; margin-top: 20px; padding: 13px; font: inherit; font-weight: 800; letter-spacing: .02em;
+    color: #06131f; background: linear-gradient(90deg, var(--cyan), var(--lime)); border: none; border-radius: 12px; cursor: pointer; }
+  button.primary:hover { filter: brightness(1.08); box-shadow: 0 0 24px rgba(45,226,255,.35); }
+  button.primary:disabled { opacity: .6; cursor: wait; }
+  .link { background: none; border: none; color: var(--cyan); font: inherit; font-size: 12.5px; cursor: pointer;
+    padding: 0; margin-top: 14px; display: inline-block; }
+  .msg { font-size: 13px; margin-top: 14px; min-height: 18px; line-height: 1.5; }
+  .msg.err { color: var(--red); }
+  .msg.ok { color: var(--pos); }
+  .note { color: var(--muted); font-size: 11.5px; margin-top: 18px; line-height: 1.6; }
+  .hide { display: none; }
+</style>
+</head>
+<body>
+<svg class="rings" viewBox="0 0 640 640" aria-hidden="true">
+  <g fill="none" stroke="rgba(45,226,255,.15)">
+    <circle cx="320" cy="320" r="110"/><circle cx="320" cy="320" r="190"/><circle cx="320" cy="320" r="270"/>
+    <line x1="320" y1="10" x2="320" y2="630"/><line x1="10" y1="320" x2="630" y2="320"/></g>
+  <path d="M320,320 L320,40 A280,280 0 0 1 518,122 Z" fill="rgba(45,226,255,.05)"/>
+</svg>
+
+<main class="card">
+  <div class="logo"><span class="nuuk">NUUK<span class="nd">.</span></span><h1>BIST Radar</h1></div>
+  <p class="sub" id="sub">Yatırımcı girişi — kayıt olun ya da giriş yapın</p>
+
+  <!-- Giriş / Kayıt -->
+  <div id="authBox">
+    <div class="tabs">
+      <button id="tabLogin" class="on" type="button">Giriş Yap</button>
+      <button id="tabSignup" type="button">Kayıt Ol</button>
+    </div>
+    <form id="authForm" novalidate>
+      <label for="em">E-posta</label>
+      <input id="em" type="email" autocomplete="email" placeholder="ornek@eposta.com" required>
+      <label for="pw">Şifre</label>
+      <input id="pw" type="password" autocomplete="current-password" placeholder="••••••••" required>
+      <button class="primary" id="authBtn" type="submit">Giriş Yap</button>
+    </form>
+    <button class="link" id="forgotBtn" type="button">Şifremi unuttum</button>
+    <div class="msg" id="msg" role="alert"></div>
+  </div>
+
+  <!-- Yeni şifre belirleme (şifremi-unuttum linkinden dönünce) -->
+  <div id="resetBox" class="hide">
+    <form id="resetForm" novalidate>
+      <label for="npw">Yeni şifre</label>
+      <input id="npw" type="password" autocomplete="new-password" placeholder="En az 8 karakter" required>
+      <button class="primary" id="resetBtn" type="submit">Şifreyi güncelle</button>
+    </form>
+    <div class="msg" id="resetMsg" role="alert"></div>
+  </div>
+
+  <p class="note">🔒 Pano içeriği AES-256-GCM ile şifrelidir; yalnızca giriş yapıp e-postasını doğrulamış
+  yatırımcılar erişebilir. Kayıt sonrası e-postanıza gelen bağlantıyla hesabınızı doğrulayın.</p>
+</main>
+
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const SUPABASE_URL = "__SUPABASE_URL__";
+const SUPABASE_ANON = "__SUPABASE_ANON__";
+const PAYLOAD = { iv: "__P_IV__", ct: "__P_CT__" };
+
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+const $ = id => document.getElementById(id);
+const b64d = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+
+let mode = "login";
+
+/* --- pano çözme + açma --- */
+async function decryptDashboard(masterB64) {
+  const key = await crypto.subtle.importKey("raw", b64d(masterB64), "AES-GCM", false, ["decrypt"]);
+  const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv: b64d(PAYLOAD.iv) }, key, b64d(PAYLOAD.ct));
+  return new TextDecoder().decode(pt);
+}
+function boot(html) {
+  document.title = "NUUK BIST Radar";
+  const f = document.createElement("iframe");
+  f.setAttribute("title", "NUUK BIST Radar");
+  f.style.cssText = "position:fixed;inset:0;width:100vw;height:100vh;border:0;background:#04101a";
+  f.srcdoc = html;
+  document.body.replaceChildren(f);
+}
+async function unlockAndBoot() {
+  // RLS: yalnızca oturumu olan kullanıcı çekebilir
+  const { data, error } = await sb.from("app_secrets").select("value").eq("id", "master").single();
+  if (error || !data) throw new Error("anahtar-alınamadı");
+  boot(await decryptDashboard(data.value));
+}
+
+/* --- oturum varsa doğrudan aç --- */
+(async () => {
+  const { data } = await sb.auth.getSession();
+  if (data.session) {
+    try { await unlockAndBoot(); } catch (e) { /* anahtar yoksa formda kal */ }
+  }
+})();
+
+/* --- şifremi-unuttum linkinden dönüş: yeni şifre ekranı --- */
+sb.auth.onAuthStateChange((event) => {
+  if (event === "PASSWORD_RECOVERY") {
+    $("authBox").classList.add("hide");
+    $("resetBox").classList.remove("hide");
+    $("sub").textContent = "Yeni şifrenizi belirleyin";
+  }
+});
+
+/* --- sekmeler --- */
+function setMode(m) {
+  mode = m;
+  $("tabLogin").classList.toggle("on", m === "login");
+  $("tabSignup").classList.toggle("on", m === "signup");
+  $("authBtn").textContent = m === "login" ? "Giriş Yap" : "Kayıt Ol";
+  $("pw").autocomplete = m === "login" ? "current-password" : "new-password";
+  $("pw").placeholder = m === "login" ? "••••••••" : "En az 8 karakter";
+  $("msg").textContent = "";
+}
+$("tabLogin").onclick = () => setMode("login");
+$("tabSignup").onclick = () => setMode("signup");
+
+/* --- giriş / kayıt --- */
+$("authForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const msg = $("msg"), btn = $("authBtn");
+  msg.className = "msg"; msg.textContent = "";
+  const email = $("em").value.trim(), pw = $("pw").value;
+  if (!email || !pw) { msg.className = "msg err"; msg.textContent = "E-posta ve şifre gerekli."; return; }
+  if (mode === "signup" && pw.length < 8) { msg.className = "msg err"; msg.textContent = "Şifre en az 8 karakter olmalı."; return; }
+  btn.disabled = true; btn.textContent = mode === "login" ? "Giriş yapılıyor…" : "Kayıt olunuyor…";
+  try {
+    if (mode === "signup") {
+      const { error } = await sb.auth.signUp({
+        email, password: pw,
+        options: { emailRedirectTo: window.location.origin + window.location.pathname },
+      });
+      if (error) throw error;
+      msg.className = "msg ok";
+      msg.textContent = "✓ Kayıt alındı. E-postanıza gelen doğrulama bağlantısına tıklayın, sonra giriş yapın.";
+      setMode("login");
+    } else {
+      const { error } = await sb.auth.signInWithPassword({ email, password: pw });
+      if (error) throw error;
+      msg.className = "msg ok"; msg.textContent = "Giriş başarılı, pano açılıyor…";
+      await unlockAndBoot();
+    }
+  } catch (ex) {
+    msg.className = "msg err";
+    const m = (ex && ex.message) || "";
+    msg.textContent = /Email not confirmed/i.test(m) ? "E-postanız henüz doğrulanmadı. Gelen kutunuzu kontrol edin."
+      : /Invalid login/i.test(m) ? "E-posta veya şifre hatalı."
+      : /already registered/i.test(m) ? "Bu e-posta zaten kayıtlı. Giriş yapın."
+      : "İşlem başarısız: " + m;
+  } finally {
+    btn.disabled = false; btn.textContent = mode === "login" ? "Giriş Yap" : "Kayıt Ol";
+  }
+});
+
+/* --- şifremi unuttum --- */
+$("forgotBtn").addEventListener("click", async () => {
+  const msg = $("msg"); msg.className = "msg";
+  const email = $("em").value.trim();
+  if (!email) { msg.className = "msg err"; msg.textContent = "Önce e-posta adresinizi girin."; return; }
+  const { error } = await sb.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + window.location.pathname,
+  });
+  msg.className = error ? "msg err" : "msg ok";
+  msg.textContent = error ? "Gönderilemedi: " + error.message
+    : "✓ Şifre sıfırlama bağlantısı e-postanıza gönderildi.";
+});
+
+/* --- yeni şifre belirleme --- */
+$("resetForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const msg = $("resetMsg"), btn = $("resetBtn");
+  msg.className = "msg";
+  const npw = $("npw").value;
+  if (npw.length < 8) { msg.className = "msg err"; msg.textContent = "Şifre en az 8 karakter olmalı."; return; }
+  btn.disabled = true; btn.textContent = "Güncelleniyor…";
+  const { error } = await sb.auth.updateUser({ password: npw });
+  if (error) { msg.className = "msg err"; msg.textContent = "Güncellenemedi: " + error.message; btn.disabled = false; btn.textContent = "Şifreyi güncelle"; return; }
+  msg.className = "msg ok"; msg.textContent = "Şifre güncellendi, pano açılıyor…";
+  try { await unlockAndBoot(); } catch (_) { location.reload(); }
+});
+</script>
+</body>
+</html>

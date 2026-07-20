@@ -58,11 +58,21 @@ iv = os.urandom(12)
 ct = AESGCM(master).encrypt(iv, dashboard.encode(), None)
 b64 = lambda b: base64.b64encode(b).decode()
 
-out = (open(p("login_template.html"), encoding="utf-8").read()
-       .replace("__USERS__", json.dumps(keys["users"]))
-       .replace("__EMAIL_SALT__", keys["emailSalt"])
-       .replace("__P_IV__", b64(iv))
-       .replace("__P_CT__", b64(ct)))
+# Giriş modeli: supabase.json (url+anon, herkese açık) varsa Supabase Auth (kendi
+# kayıt), yoksa eski kişi-başı şifre şablonu. Geçiş kesintisiz.
+if os.path.exists(p("supabase.json")):
+    cfg = json.load(open(p("supabase.json")))
+    out = (open(p("login_supabase_template.html"), encoding="utf-8").read()
+           .replace("__SUPABASE_URL__", cfg["url"])
+           .replace("__SUPABASE_ANON__", cfg["anon"])
+           .replace("__P_IV__", b64(iv))
+           .replace("__P_CT__", b64(ct)))
+else:
+    out = (open(p("login_template.html"), encoding="utf-8").read()
+           .replace("__USERS__", json.dumps(keys["users"]))
+           .replace("__EMAIL_SALT__", keys["emailSalt"])
+           .replace("__P_IV__", b64(iv))
+           .replace("__P_CT__", b64(ct)))
 
 with open(p("index.html"), "w", encoding="utf-8") as f:
     f.write(out)

@@ -306,6 +306,22 @@
   .sig-reasons li { font-size: 11.5px; color: var(--ink-2); padding-left: 16px; position: relative; }
   .sig-reasons li::before { content: "✓"; position: absolute; left: 0; color: var(--lime); }
   .sig-flags { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
+  /* canlı fiyat + sonuç */
+  .sig-live { display: flex; align-items: baseline; gap: 6px; margin: 8px 0 2px; font-size: 12px; color: var(--ink-2); }
+  .sig-live b { font-size: 15px; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .sig-live .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 6px var(--lime); display: inline-block; }
+  .sig-live.stale { color: var(--amber); }
+  .sig-card.done { opacity: .82; }
+  .sig-card.win { border-color: rgba(74,222,128,.5); }
+  .sig-card.loss { border-color: rgba(255,107,122,.45); }
+  .sig-result { display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    border-radius: 10px; padding: 8px 12px; margin: 10px 0 4px; font-weight: 800; font-size: 13px; }
+  .sig-result.win { background: rgba(74,222,128,.12); color: var(--pos); border: 1px solid rgba(74,222,128,.4); }
+  .sig-result.loss { background: rgba(255,107,122,.12); color: var(--red); border: 1px solid rgba(255,107,122,.4); }
+  .sig-result .sub { font-weight: 600; font-size: 11.5px; opacity: .85; }
+  .market-banner { display: flex; align-items: center; gap: 8px; background: rgba(255,200,87,.08);
+    border: 1px solid rgba(255,200,87,.35); color: var(--amber); border-radius: 10px;
+    padding: 9px 14px; font-size: 12.5px; margin-bottom: 12px; }
 
   /* ---- detail overlay (glass) ---- */
   .overlay { position: fixed; inset: 0; background: rgba(2,10,18,.72); backdrop-filter: blur(6px); display: none; z-index: 20; overflow-y: auto; padding: 4vh 16px; }
@@ -486,13 +502,15 @@
     <!-- ============ SIGNALS ============ -->
     <section id="view-signals" hidden>
       <div class="loop-strip" id="loopStrip"></div>
+      <div id="sigBanner"></div>
       <div class="sig-head">
         <h2 style="margin:0;font-size:17px">İşlem Sinyalleri</h2>
         <span id="sigCounts" class="count-note"></span>
         <select id="sigFilter" aria-label="Sinyal filtresi" style="margin-left:auto">
-          <option value="">Tümü (RADAR + İZLE)</option>
+          <option value="">Tümü (aktif + tamamlanan)</option>
+          <option value="active">Yalnızca aktif</option>
           <option value="RADAR">Yalnızca RADAR</option>
-          <option value="İZLE">Yalnızca İZLE</option>
+          <option value="done">Tamamlananlar</option>
         </select>
       </div>
       <div class="sig-grid" id="sigGrid"></div>
@@ -1003,22 +1021,50 @@ document.getElementById("cmpq").addEventListener("change", e => {
   document.getElementById("loopStrip").innerHTML = LOOP.map(([n, t, d]) =>
     `<div class="loop-step"><div class="n">${n}</div><div class="t">${t}</div><div class="d">${d}</div></div>`).join("");
   document.getElementById("sigCounts").textContent =
-    `${counts.radar || 0} RADAR · ${counts.izle || 0} İZLE · toplam ${counts.total || 0} kurulum`;
+    `${counts.active || 0} aktif (${counts.radar || 0} RADAR) · ${counts.done || 0} tamamlandı`;
 
+  // Piyasa kapalı bildirimi — bayat fiyatları canlıymış gibi göstermemek için
+  if (DATA.marketOpen === false) {
+    document.getElementById("sigBanner").innerHTML =
+      '<div class="market-banner">⏸️ Piyasa kapalı · fiyatlar son seanstan · yeni sinyal üretilmiyor. ' +
+      'Sinyaller açılışta güncellenir.</div>';
+  }
+
+  const isDone = s => s.status && s.status !== "active";
   const decCls = d => d === "RADAR" ? "b-up" : "b-flat";
+  const RES = { target1: ["win", "✓ HEDEF 1R", "+1R kâr"], target2: ["win", "✓ HEDEF 2R", "+2R kâr"],
+                target3: ["win", "✓ HEDEF 3R", "+3R kâr"], stopped: ["loss", "✗ STOP", "−1R zarar"] };
+
+  function livePrice(s) {
+    if (isDone(s)) return "";
+    if (s.stale)
+      return `<div class="sig-live stale">⚠ fiyat güncellenemedi (son: ₺${nf2.format(s.lastPrice ?? s.entry)})</div>`;
+    const px = s.lastPrice ?? s.entry;
+    const chg = s.entry ? (px / s.entry - 1) * 100 : 0;
+    const cc = chg >= 0 ? "pos" : "neg";
+    return `<div class="sig-live"><span class="dot"></span>Şu an: <b>₺${nf2.format(px)}</b>
+      <span class="${cc}">(${chg >= 0 ? "+" : ""}${nf1.format(chg)}%)</span></div>`;
+  }
+
   function card(s) {
-    return `<div class="sig-card ${s.decision === "RADAR" ? "radar" : ""}">
+    const done = isDone(s);
+    const res = done ? RES[s.status] : null;
+    const cls = done ? `done ${res[0]}` : (s.decision === "RADAR" ? "radar" : "");
+    const badge = done
+      ? `<span class="badge ${res[0] === "win" ? "b-up" : "b-down"}">TAMAMLANDI</span>`
+      : `<span class="badge ${decCls(s.decision)}">${s.decision}</span>`;
+    return `<div class="sig-card ${cls}">
       <div class="sig-top">
         <div><div class="code">${s.code}</div><div class="nm">${esc(s.name)}</div></div>
-        <div class="sig-badges">
-          <span class="badge ${decCls(s.decision)}">${s.decision}</span>
-          <span class="sig-setup">${s.setup}</span>
-        </div>
+        <div class="sig-badges">${badge}<span class="sig-setup">${s.setup}</span></div>
       </div>
-      <div class="strength-wrap">
-        <div class="strength-lbl"><span>Kurulum gücü</span><span>${s.strength}/100</span></div>
-        <div class="strength-bar"><span style="width:${s.strength}%"></span></div>
-      </div>
+      ${done ? `<div class="sig-result ${res[0]}"><span>${res[1]}</span>
+        <span class="sub">kapanış ₺${nf2.format(s.closePrice)} · ${res[2]}</span></div>`
+        : `<div class="strength-wrap">
+            <div class="strength-lbl"><span>Kurulum gücü</span><span>${s.strength}/100</span></div>
+            <div class="strength-bar"><span style="width:${s.strength}%"></span></div>
+          </div>`}
+      ${livePrice(s)}
       <div class="sig-plan">
         <div class="cell"><div class="k">Giriş</div><div class="v">₺${nf2.format(s.entry)}</div></div>
         <div class="cell stop"><div class="k">Stop</div><div class="v">₺${nf2.format(s.stop)}</div></div>
@@ -1031,23 +1077,28 @@ document.getElementById("cmpq").addEventListener("change", e => {
         <span>Temel skor ${s.fscore}</span>
         ${s.atrPct != null ? `<span>ATR ±%${nf1.format(s.atrPct)}</span>` : ""}
       </div>
-      <ul class="sig-reasons">${(s.reasons || []).map(r => `<li>${esc(r)}</li>`).join("")}</ul>
-      ${(s.riskFlags && s.riskFlags.length) ? `<div class="sig-flags">${s.riskFlags.map(f =>
+      ${!done ? `<ul class="sig-reasons">${(s.reasons || []).map(r => `<li>${esc(r)}</li>`).join("")}</ul>` : ""}
+      ${(!done && s.riskFlags && s.riskFlags.length) ? `<div class="sig-flags">${s.riskFlags.map(f =>
         `<span class="badge b-warn">${esc(f)}</span>`).join("")}</div>` : ""}
     </div>`;
   }
   function render() {
     const f = document.getElementById("sigFilter").value;
-    const rows = SIGNALS.filter(s => !f || s.decision === f);
+    const rows = SIGNALS.filter(s => {
+      if (f === "active") return !isDone(s);
+      if (f === "done") return isDone(s);
+      if (f === "RADAR") return !isDone(s) && s.decision === "RADAR";
+      return true;
+    });
     document.getElementById("sigGrid").innerHTML = rows.length
       ? rows.map(card).join("")
       : '<div class="na" style="padding:20px">Bu filtrede kurulum yok.</div>';
   }
   document.getElementById("sigFilter").addEventListener("change", render);
   document.getElementById("sigNote").textContent =
-    "Sinyaller günlük bar verisinden üretilen MEKANİK kurulum tespitleridir; olasılık iddiası taşımaz, " +
-    "geriye dönük test edilmemiştir ve yatırım tavsiyesi DEĞİLDİR. Nihai karar ve emir sizindir. " +
-    "Kurulum tanımları için Metodoloji sekmesine bakın.";
+    "Sinyaller MEKANİK kurulum tespitleridir; fiyatlar canlı, hedef/stop girişte sabitlenir ve sonuç " +
+    "izlenir. Olasılık iddiası taşımaz, geriye dönük test edilmemiştir ve yatırım tavsiyesi DEĞİLDİR. " +
+    "Nihai karar ve emir sizindir. Kurulum tanımları için Metodoloji sekmesine bakın.";
   render();
 })();
 

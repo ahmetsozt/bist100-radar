@@ -38,6 +38,9 @@ jobs:
       - name: Sinyal motoru (kurulum tespiti)
         run: python compute_signals.py
 
+      - name: Sinyal takibi (canlı fiyat + sonuç izleme)
+        run: python track_signals.py
+
       - name: Şifrele ve siteyi derle
         env:
           MASTER_KEY: ${{ secrets.MASTER_KEY }}
@@ -53,7 +56,7 @@ jobs:
         run: |
           git config user.name "radar-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add index.html signals_sent.json
+          git add index.html signals_sent.json signal_log.json
           git diff --cached --quiet && echo "değişiklik yok" || {
             git commit -m "data: saatlik otomatik güncelleme + sinyaller"
             git push

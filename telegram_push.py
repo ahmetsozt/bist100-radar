@@ -76,21 +76,15 @@ def send(text):
         return r.status
 
 
-def build_msg(s, live_px, asof):
-    """Canlı fiyattan planı tazele (aynı R yapısı korunur), mesajı kur."""
-    rp = s["riskPct"] / 100
-    entry = round(live_px, 2)
-    stop = round(entry * (1 - rp), 2)
-    t1 = round(entry * (1 + rp), 2)
-    t2 = round(entry * (1 + 2 * rp), 2)
-    t3 = round(entry * (1 + 3 * rp), 2)
+def build_msg(s, asof):
+    """Sinyal (track_signals'ten, girişi zaten canlı fiyattan sabitlenmiş) mesajı."""
     return (
         f"📡 <b>NUUK BIST Radar</b> — yeni sinyal\n"
         f"🟢 <b>{s['code']}</b> · {s['setup']} · güç {s['strength']}/100\n\n"
         f"Yön: LONG\n"
-        f"Giriş: ₺{tr(entry)} <i>(canlı)</i>\n"
-        f"Stop: ₺{tr(stop)} (−%{tr(s['riskPct'], 1)})\n"
-        f"Hedefler: 1R ₺{tr(t1)} · 2R ₺{tr(t2)} · 3R ₺{tr(t3)}\n"
+        f"Giriş: ₺{tr(s['entry'])} <i>(canlı)</i>\n"
+        f"Stop: ₺{tr(s['stop'])} (−%{tr(s['riskPct'], 1)})\n"
+        f"Hedefler: 1R ₺{tr(s['t1'])} · 2R ₺{tr(s['t2'])} · 3R ₺{tr(s['t3'])}\n"
         f"Temel skor: {s['fscore']}/100\n\n"
         + "".join(f"✓ {r}\n" for r in s.get("reasons", [])[:3])
         + f"\n<i>{asof}</i>\n"
@@ -100,7 +94,9 @@ def build_msg(s, live_px, asof):
 
 def main():
     sig = json.load(open(p("signals.json")))
-    radar = [s for s in sig.get("signals", []) if s["decision"] == "RADAR"]
+    # yalnızca AKTİF RADAR (track_signals: canlı fiyatlı, piyasa açıkken üretilmiş)
+    radar = [s for s in sig.get("signals", [])
+             if s.get("decision") == "RADAR" and s.get("status") == "active"]
     cur_keys = {f'{s["code"]}|{s["setup"]}' for s in radar}
 
     sent = set()
@@ -111,14 +107,13 @@ def main():
             pass
     new = [s for s in radar if f'{s["code"]}|{s["setup"]}' not in sent]
 
-    # --- KAPI 1: yalnızca hafta içi + BIST açık saatleri ---
+    # KAPI: yalnızca hafta içi + BIST açık (track zaten canlı fiyatı doğruladı)
     open_ok, reason = market_open_now()
     if not open_ok:
-        print(f"borsa kapalı ({reason}) — Telegram atlanıyor; sinyaller açılışa dek beklemede")
-        return  # signals_sent DEĞİŞTİRİLMEZ: açılınca gönderilsinler
+        print(f"borsa kapalı ({reason}) — Telegram atlanıyor")
+        return  # signals_sent DEĞİŞTİRİLMEZ
     if not new:
-        print("yeni RADAR sinyali yok, Telegram atlanıyor")
-        # sent'i güncel RADAR ile buda (kaybolanlar tekrar gelirse yeniden uyarır)
+        print("yeni aktif RADAR yok, Telegram atlanıyor")
         json.dump(sorted(sent & cur_keys), open(p("signals_sent.json"), "w"), ensure_ascii=False)
         return
     if not (TOKEN and CHAT):
@@ -128,23 +123,13 @@ def main():
     asof = sig.get("asOf", "")
     delivered = set()
     for s in new:
-        # --- KAPI 2: fiyat kesinlikle güncel mi? ---
-        px, fresh = live_price(s["code"])
-        if not fresh:
-            print(f"  {s['code']}: fiyat güncel değil (bayat/erişilemez) — atlanıyor, sonraki saat denenir")
-            continue
-        drift = abs(px / s["entry"] - 1) * 100 if s.get("entry") else 0
-        if drift > MAX_DRIFT_PCT:
-            print(f"  {s['code']}: canlı fiyat hesaptan %{drift:.0f} sapmış — şüpheli, atlanıyor")
-            continue
         try:
-            send(build_msg(s, px, asof))
+            send(build_msg(s, asof))
             delivered.add(f'{s["code"]}|{s["setup"]}')
-            print(f"gönderildi: {s['code']} {s['setup']} @ ₺{px:.2f}")
+            print(f"gönderildi: {s['code']} {s['setup']} @ ₺{s['entry']:.2f}")
         except Exception as e:
             print(f"HATA {s['code']}: {e}")
 
-    # yalnızca GERÇEKTEN gönderilenler + hâlâ geçerli eski gönderimler kaydedilir
     final = (sent & cur_keys) | delivered
     json.dump(sorted(final), open(p("signals_sent.json"), "w"), ensure_ascii=False)
 

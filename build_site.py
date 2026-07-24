@@ -39,6 +39,10 @@ if os.path.exists(p("technical.json")):
     data["tech"] = tech.get("stocks", {})
     data["market"] = tech.get("market", {})
 
+# Maks Kâr sekmesi fiyat serileri (fetch_technical.py çıktısı) — yoksa sekme gizlenir
+if os.path.exists(p("bist100_prices.json")):
+    data["prices"] = json.load(open(p("bist100_prices.json")))
+
 # sinyal motoru + takip çıktısı (compute_signals.py -> track_signals.py)
 if os.path.exists(p("signals.json")):
     sg = json.load(open(p("signals.json")))

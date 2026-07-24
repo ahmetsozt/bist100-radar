@@ -394,6 +394,9 @@
     <button data-view="position" aria-label="Pozisyon" title="Pozisyon">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
     </button>
+    <button data-view="maxprofit" aria-label="Maks Kâr" title="Maks Kâr">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>
+    </button>
     <button data-view="method" aria-label="Metodoloji" title="Metodoloji">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><path d="M9 12h7M9 16h7"/></svg>
     </button>
@@ -413,6 +416,7 @@
       <button data-view="compare" role="tab">Karşılaştır</button>
       <button data-view="signals" role="tab">Sinyaller</button>
       <button data-view="position" role="tab">Pozisyon</button>
+      <button data-view="maxprofit" role="tab">Maks Kâr</button>
       <button data-view="method" role="tab">Metodoloji</button>
     </div>
 
@@ -543,6 +547,37 @@
       </div>
       <p class="footer-note">Bu hesaplayıcı mekanik bir formül uygular (risk = hesap × risk%, adet = risk / stop mesafesi);
       yatırım tavsiyesi değildir. Veriler günlük bar bazlıdır — gün içi al-sat aracı değildir.</p>
+    </section>
+
+    <!-- ============ MAX PROFIT ============ -->
+    <section id="view-maxprofit" hidden>
+      <div class="kpis" id="mpKpis" style="margin-bottom:14px"></div>
+      <div class="card">
+        <div class="filters">
+          <input class="search" id="mpq" type="search" placeholder="Hisse kodu veya şirket ara…" aria-label="Maks kâr tablosunda ara">
+          <span class="count-note" id="mpNote"></span>
+        </div>
+        <div class="scroller" style="max-height:640px">
+          <table style="min-width:1020px">
+            <thead>
+              <tr>
+                <th class="l sortable" data-k="code">Hisse</th>
+                <th class="l">Al</th>
+                <th class="l">Sat</th>
+                <th class="sortable" data-k="buyPrice">Al Fiyatı</th>
+                <th class="sortable" data-k="sellPrice">Sat Fiyatı</th>
+                <th class="sortable sorted" data-k="pct">Maks Kâr</th>
+                <th class="sortable" data-k="fromSell">Sat → Bugün</th>
+                <th>Fiyat (1Y)</th>
+              </tr>
+            </thead>
+            <tbody id="mpBody"></tbody>
+          </table>
+        </div>
+        <p class="hint">Maks kâr: son 1 yılın günlük kapanışlarında <b>tek bir al-sat</b> ile elde edilebilecek en yüksek getiri (geriye dönük, teorik — alış her zaman satıştan önce gelir).
+        Hesap, panoya gömülü tek geçişli O(n) algoritmayla tarayıcıda anlık yapılır. Grafikte <span style="color:var(--pos)">●</span> al, <span style="color:var(--red)">●</span> sat gününü gösterir.
+        Temettü ve işlem maliyeti hariçtir; yatırım tavsiyesi değildir.</p>
+      </div>
     </section>
 
     <!-- ============ METHOD ============ -->
@@ -1153,6 +1188,134 @@ document.getElementById("cmpq").addEventListener("change", e => {
   if (withTech.length) calc();
 })();
 
+/* ---------- maks kâr (tek işlem, O(n)) ---------- */
+/* Klasik "best time to buy and sell stock" çözümünün JS portu: o ana kadarki
+   minimum kapanışı taşıyarak her günde "bugün satsaydım" kârını dener;
+   veri olmayan günler atlanır */
+function maxProfitScan(closes) {
+  let minIdx = -1, buyIdx = -1, sellIdx = -1, best = 0;
+  for (let i = 0; i < closes.length; i++) {
+    const p = closes[i];
+    if (p == null) continue;
+    if (minIdx === -1 || p < closes[minIdx]) { minIdx = i; continue; }
+    const gain = p - closes[minIdx];
+    if (gain > best) { best = gain; buyIdx = minIdx; sellIdx = i; }
+  }
+  if (buyIdx === -1) return null;
+  return { buyIdx, sellIdx, gain: best, pct: best / closes[buyIdx] * 100 };
+}
+const PRICES = DATA.prices || null;
+const dShort = iso => { if (!iso) return "—"; const [y, m, d] = iso.split("-"); return d + "." + m + "." + String(y).slice(2); };
+const mpStocks = PRICES ? stocks.map(s => {
+  const closes = PRICES.closes[s.code];
+  if (!closes) return null;
+  const r = maxProfitScan(closes);
+  if (!r) return null;
+  let li = closes.length - 1; while (li >= 0 && closes[li] == null) li--;
+  const last = li >= 0 ? closes[li] : null;
+  return {
+    code: s.code, name: s.name, closes,
+    buyIdx: r.buyIdx, sellIdx: r.sellIdx,
+    buyDate: PRICES.dates[r.buyIdx], sellDate: PRICES.dates[r.sellIdx],
+    buyPrice: closes[r.buyIdx], sellPrice: closes[r.sellIdx],
+    pct: r.pct, fromSell: last != null ? (last / closes[r.sellIdx] - 1) * 100 : null
+  };
+}).filter(Boolean) : [];
+
+function mpSpark(row) {
+  const { closes, buyIdx, sellIdx } = row;
+  const w = 132, h = 34;
+  const step = Math.max(1, Math.floor(closes.length / 60));
+  const pts = [];
+  for (let i = 0; i < closes.length; i++) {
+    if (closes[i] == null) continue;
+    if (i % step === 0 || i === buyIdx || i === sellIdx || i === closes.length - 1) pts.push([i, closes[i]]);
+  }
+  if (pts.length < 2) return '<span class="na">—</span>';
+  const vals = pts.map(p => p[1]);
+  const min = Math.min(...vals), max = Math.max(...vals), rng = (max - min) || 1;
+  const x = i => 3 + i * (w - 6) / (closes.length - 1);
+  const y = v => h - 3 - (v - min) * (h - 6) / rng;
+  const d = pts.map((p, i) => (i ? "L" : "M") + x(p[0]).toFixed(1) + "," + y(p[1]).toFixed(1)).join(" ");
+  const mark = (idx, col, tipTxt) =>
+    `<circle cx="${x(idx).toFixed(1)}" cy="${y(closes[idx]).toFixed(1)}" r="3.2" fill="${col}" class="hbar" data-tip="${tipTxt}" style="filter:drop-shadow(0 0 4px ${col})"/>`;
+  return `<svg width="${w}" height="${h}" aria-hidden="true">
+    <path d="${d}" fill="none" stroke="var(--cyan)" stroke-width="1.5" opacity=".7"/>
+    ${mark(buyIdx, "var(--pos)", "Al · " + dShort(row.buyDate) + ": ₺" + nf2.format(row.buyPrice))}
+    ${mark(sellIdx, "var(--red)", "Sat · " + dShort(row.sellDate) + ": ₺" + nf2.format(row.sellPrice))}</svg>`;
+}
+
+let mpSortKey = "pct", mpSortDir = -1;
+function renderMaxProfit() {
+  if (!PRICES) return;
+  const q = (document.getElementById("mpq").value || "").trim().toLocaleLowerCase("tr");
+  let rows = mpStocks.filter(s => !q || s.code.toLocaleLowerCase("tr").includes(q) || (s.name || "").toLocaleLowerCase("tr").includes(q));
+  rows.sort((a, b) => {
+    if (mpSortKey === "code") return mpSortDir * a.code.localeCompare(b.code, "tr");
+    const va = a[mpSortKey], vb = b[mpSortKey];
+    if (va == null && vb == null) return 0;
+    if (va == null) return 1; if (vb == null) return -1;
+    return mpSortDir * (va - vb);
+  });
+  document.getElementById("mpNote").textContent = rows.length + " hisse gösteriliyor";
+  document.getElementById("mpBody").innerHTML = rows.map(s => `
+    <tr data-code="${s.code}" tabindex="0" aria-label="${esc(s.code)} detayını aç">
+      <td class="l"><span class="tcode">${s.code}</span><div class="tname">${esc(s.name)}</div></td>
+      <td class="l" style="color:var(--pos);font-variant-numeric:tabular-nums">${dShort(s.buyDate)}</td>
+      <td class="l" style="color:var(--red);font-variant-numeric:tabular-nums">${dShort(s.sellDate)}</td>
+      <td>₺${nf2.format(s.buyPrice)}</td>
+      <td>₺${nf2.format(s.sellPrice)}</td>
+      <td class="pos" style="font-weight:700">${pct(s.pct)}</td>
+      <td class="${cls(s.fromSell)}">${pct(s.fromSell)}</td>
+      <td class="sparkcell">${mpSpark(s)}</td>
+    </tr>`).join("");
+}
+(function mpInit() {
+  const tabBtns = document.querySelectorAll('[data-view="maxprofit"]');
+  if (!PRICES || !mpStocks.length) { tabBtns.forEach(b => b.style.display = "none"); return; }
+  const sorted = [...mpStocks].sort((a, b) => b.pct - a.pct);
+  const median = arr => { const a = [...arr].sort((x, y) => x - y); return a.length % 2 ? a[(a.length - 1) / 2] : (a[a.length / 2 - 1] + a[a.length / 2]) / 2; };
+  const medPct = median(mpStocks.map(s => s.pct));
+  const best = sorted[0];
+  const firstD = PRICES.dates[0], lastD = PRICES.dates[PRICES.dates.length - 1];
+  document.getElementById("mpKpis").innerHTML = `
+    <div class="card kpi">
+      <div class="lbl">Medyan maks kâr (1Y, tek işlem)</div>
+      <div class="val pos">${pct(medPct)}</div>
+      <div class="sub">${mpStocks.length} hisse üzerinden</div>
+    </div>
+    <div class="card kpi">
+      <div class="lbl">En yüksek maks kâr</div>
+      <div class="val pos">${pct(best.pct)}</div>
+      <div class="sub">${best.code} · ${dShort(best.buyDate)} al → ${dShort(best.sellDate)} sat</div>
+    </div>
+    <div class="card kpi">
+      <div class="lbl">Dönem</div>
+      <div class="val" style="font-size:22px">${dShort(firstD)} – ${dShort(lastD)}</div>
+      <div class="sub">${PRICES.dates.length} işlem günü · günlük kapanış</div>
+    </div>`;
+  document.getElementById("mpq").addEventListener("input", renderMaxProfit);
+  document.querySelectorAll("#view-maxprofit th.sortable").forEach(th => {
+    th.tabIndex = 0;
+    const act = () => {
+      const k = th.dataset.k;
+      if (mpSortKey === k) mpSortDir *= -1; else { mpSortKey = k; mpSortDir = k === "code" ? 1 : -1; }
+      document.querySelectorAll("#view-maxprofit th.sortable").forEach(t => t.classList.toggle("sorted", t === th));
+      renderMaxProfit();
+    };
+    th.addEventListener("click", act);
+    th.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); act(); } });
+  });
+  document.getElementById("mpBody").addEventListener("click", e => {
+    const tr = e.target.closest("tr[data-code]"); if (tr) openDetail(tr.dataset.code);
+  });
+  document.getElementById("mpBody").addEventListener("keydown", e => {
+    const tr = e.target.closest("tr[data-code]");
+    if (tr && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); openDetail(tr.dataset.code); }
+  });
+  renderMaxProfit();
+})();
+
 /* ---------- methodology ---------- */
 document.getElementById("methodBox").innerHTML = `
   <h3>Veri kaynağı</h3>
@@ -1210,6 +1373,11 @@ document.getElementById("methodBox").innerHTML = `
   <p><code>risk = hesap × risk%</code> · <code>stop = giriş − k×ATR(14)</code> ·
   <code>adet = risk / (giriş − stop)</code>. Likidite uyarısı, pozisyon 20 günlük ortalama
   işlem hacminin %1'ini aşarsa görünür. Hesaplama tarayıcıda yapılır, hiçbir veri gönderilmez.</p>
+  <h3>Maks Kâr sekmesi</h3>
+  <p>Her hisse için son 1 yılın günlük kapanışlarında <b>tek bir al-sat</b> ile elde edilebilecek en yüksek getiri hesaplanır
+  (klasik "best time to buy and sell stock" problemi). Alış her zaman satıştan önce gelir; hesap, o ana kadarki minimum
+  kapanışı taşıyan tek geçişli <code>O(n)</code> algoritmayla tarayıcıda yapılır. Sonuç geriye dönük ve teoriktir —
+  gelecek getiri öngörmez, hissenin dönem içi oynaklık/fırsat aralığını gösterir. Kapanışlar temettü/bölünme düzeltmelidir.</p>
   <h3>Bilinen sınırlamalar</h3>
   <ul>
     <li>Bankalar ve finansal kuruluşlarda "gelir" Total Revenue kalemidir; capex/FCF anlamlı olmadığından boş bırakılır.</li>
@@ -1404,7 +1572,7 @@ overlay.addEventListener("click", e => { if (e.target === overlay) closeDetail()
 document.addEventListener("keydown", e => { if (e.key === "Escape") closeDetail(); });
 
 /* ---------- tabs / views ---------- */
-const VIEWS = ["overview", "companies", "compare", "signals", "position", "method"];
+const VIEWS = ["overview", "companies", "compare", "signals", "position", "maxprofit", "method"];
 function showView(v) {
   VIEWS.forEach(x => document.getElementById("view-" + x).hidden = x !== v);
   document.querySelectorAll("[data-view]").forEach(b => b.classList.toggle("active", b.dataset.view === v));

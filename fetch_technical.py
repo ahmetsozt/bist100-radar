@@ -128,10 +128,34 @@ def analyze(df, idx_ret3m, idx_daily=None):
     }
 
 
+PRICE_DAYS = 252  # Maks Kâr sekmesi: ~1 yıllık günlük kapanış
+
+
+def dump_prices(raw):
+    """Aynı indirmeden Maks Kâr sekmesi için ortak tarih eksenli kapanış serileri yazar."""
+    cols = {}
+    for code in TICKERS:
+        try:
+            cols[code] = raw[code + ".IS"]["Close"]
+        except KeyError:
+            continue
+    df = pd.DataFrame(cols).tail(PRICE_DAYS).dropna(how="all")
+    dates = [d.strftime("%Y-%m-%d") for d in df.index]
+    closes = {}
+    for code in df.columns:
+        vals = [(round(float(v), 4) if math.isfinite(v) else None) for v in df[code]]
+        if sum(v is not None for v in vals) >= 30:
+            closes[code] = vals
+    out = {"period": "1y", "dates": dates, "closes": closes}
+    json.dump(out, open("bist100_prices.json", "w"))
+    print(f"bist100_prices.json — {len(closes)} hisse, {len(dates)} gün")
+
+
 def main():
     symbols = [c + ".IS" for c in TICKERS] + ["XU100.IS"]
     raw = yf.download(symbols, period="2y", interval="1d",
                       group_by="ticker", progress=False, threads=True)
+    dump_prices(raw)
 
     idx = raw["XU100.IS"].dropna(subset=["Close"])
     idx_c = idx["Close"]

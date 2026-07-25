@@ -124,23 +124,36 @@ const b64d = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
 
 let mode = "login";
 
-/* --- kayıt bilgisini Google E-Tablo'ya gönder (webhook boşsa atlanır) --- */
-async function kaydiEtablayaGonder(ad, email, telefon) {
-  if (!SHEETS_WEBHOOK || SHEETS_WEBHOOK.indexOf("__") === 0) return;
+/* --- Google E-Tablo webhook'u (boşsa atlanır) ---
+   Script tarafı e-postaya göre upsert eder: aynı yatırımcı için yeni satır
+   açmaz, mevcut satırın durum/IP/son giriş alanlarını günceller. */
+const SHEETS_ON = SHEETS_WEBHOOK && SHEETS_WEBHOOK.indexOf("__") !== 0;
+
+async function ipAl() {
   try {
-    let ip = "";
-    try {
-      const c = new AbortController(); setTimeout(() => c.abort(), 3000);
-      ip = (await (await fetch("https://api.ipify.org?format=text", { signal: c.signal })).text()).trim();
-    } catch (_) {}
+    const c = new AbortController(); setTimeout(() => c.abort(), 3000);
+    return (await (await fetch("https://api.ipify.org?format=text", { signal: c.signal })).text()).trim();
+  } catch (_) { return ""; }
+}
+
+async function etablayaGonder(payload) {
+  if (!SHEETS_ON) return;
+  try {
     fetch(SHEETS_WEBHOOK, {
       method: "POST", mode: "no-cors", keepalive: true,
       headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ ad, email, telefon, ip,
-        durum: "Kayit olundu (e-posta dogrulamasi bekliyor)" }),
+      body: JSON.stringify({ ...payload, ip: await ipAl() }),
     });
-  } catch (_) { /* kayıt akışını asla engelleme */ }
+  } catch (_) { /* kayıt/giriş akışını asla engelleme */ }
 }
+
+const kaydiEtablayaGonder = (ad, email, telefon) =>
+  etablayaGonder({ ad, email, telefon, durum: "Kayit olundu (e-posta dogrulamasi bekliyor)" });
+
+/* Supabase doğrulanmamış e-postayla girişe izin vermez → başarılı giriş,
+   e-postanın doğrulandığının kanıtıdır. */
+const girisiEtablayaGonder = email =>
+  etablayaGonder({ email, durum: "Dogrulandi - aktif" });
 
 /* --- pano çözme + açma --- */
 async function decryptDashboard(masterB64) {
@@ -225,6 +238,7 @@ $("authForm").addEventListener("submit", async e => {
     } else {
       const { error } = await sb.auth.signInWithPassword({ email, password: pw });
       if (error) throw error;
+      girisiEtablayaGonder(email);                // E-Tablo: durum → doğrulandı
       msg.className = "msg ok"; msg.textContent = "Giriş başarılı, pano açılıyor…";
       await unlockAndBoot();
     }

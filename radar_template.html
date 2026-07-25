@@ -112,6 +112,17 @@
     box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 10px 34px rgba(0,10,20,.45);
   }
 
+  /* ---- makro şerit (altın / kur) ---- */
+  .macro { display: grid; grid-template-columns: repeat(auto-fit, minmax(196px, 1fr)); gap: 12px; margin-bottom: 14px; }
+  .macro .m { position: relative; overflow: hidden; padding: 12px 15px 10px; }
+  .macro .lbl { font-size: 10.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 700; }
+  .macro .val { font-size: 23px; font-weight: 800; letter-spacing: -0.01em; margin: 3px 0 2px; font-variant-numeric: tabular-nums; }
+  .macro .val .u { font-size: 14px; font-weight: 700; color: var(--ink-2); margin-left: 3px; }
+  .macro .ft { font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; display: flex; gap: 10px; flex-wrap: wrap; }
+  .macro .ft b { font-weight: 700; }
+  .macro svg.spark { position: absolute; right: 10px; top: 26px; opacity: .8; }
+  .macro-stamp { font-size: 11.5px; color: var(--muted); margin: 0 0 14px; }
+
   /* ---- KPI row ---- */
   .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
   .kpi { padding: 16px 18px 14px; position: relative; overflow: hidden; }
@@ -422,6 +433,8 @@
 
     <!-- ============ OVERVIEW ============ -->
     <section id="view-overview">
+      <div class="macro" id="macro"></div>
+      <p class="macro-stamp" id="macroStamp"></p>
       <div class="kpis" id="kpis"></div>
       <div class="ov">
         <div class="card list-card">
@@ -811,6 +824,37 @@ function trendChart(pairs) {
 }
 
 /* ---------- KPI cards ---------- */
+/* ---------- makro şerit: gram/ons altın + kurlar ---------- */
+(function macro() {
+  const el = document.getElementById("macro"), stamp = document.getElementById("macroStamp");
+  const assets = (DATA.macro && DATA.macro.assets) || [];
+  if (!assets.length) { el.hidden = true; stamp.hidden = true; return; }   // veri yoksa şerit gizlenir
+  const nfd = d => new Intl.NumberFormat("tr-TR", { minimumFractionDigits: d, maximumFractionDigits: d });
+  // Her varlık kendi son işlem baskısını taşır; vadeli altın ile FX takvimleri
+  // ayrıştığında bayat kotasyonu sessizce güncel gibi göstermeyip tarihini yazarız.
+  const enYeni = assets.reduce((m, a) => a.date > m ? a.date : m, "");
+  const gunAy = d => d.slice(8, 10) + "." + d.slice(5, 7);
+  el.innerHTML = assets.map(a => {
+    const up = a.chg1d != null && a.chg1d >= 0;
+    const color = a.chg1d == null ? "var(--muted)" : up ? "var(--pos)" : "var(--red)";
+    const pairs = (a.c60 || []).map((v, i) => [i, v]);
+    const bayat = a.date && a.date < enYeni ? `<span class="na">${gunAy(a.date)} kapanışı</span>` : "";
+    return `<div class="card m">
+      <div class="lbl">${esc(a.label)}</div>
+      <div class="val">${nfd(a.decimals).format(a.last)}<span class="u">${esc(a.unit)}</span></div>
+      <div class="ft">
+        <span class="${cls(a.chg1d)}">${pct(a.chg1d)} <b>gün</b></span>
+        <span class="${cls(a.chg1m)}">${pct(a.chg1m)} <b>1A</b></span>
+        <span class="${cls(a.chg1y)}">${pct(a.chg1y)} <b>1Y</b></span>
+        ${bayat}
+      </div>
+      ${sparkSvg(pairs, 74, 32, color)}
+    </div>`;
+  }).join("");
+  stamp.textContent = `Makro veriler ${DATA.macro.asOf} itibarıyla çekildi; her kart kendi son işlem `
+    + `kapanışını gösterir · gram altın = ons altın ÷ 31,1035 × USD/TRY`;
+})();
+
 (function kpis() {
   const el = document.getElementById("kpis");
   const arrow = (now, prev, fmt) => prev == null || now == null ? "" :

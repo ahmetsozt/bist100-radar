@@ -43,6 +43,10 @@ if os.path.exists(p("technical.json")):
 if os.path.exists(p("bist100_prices.json")):
     data["prices"] = json.load(open(p("bist100_prices.json")))
 
+# makro varlıklar (fetch_macro.py çıktısı) — yoksa şerit kendini gizler
+if os.path.exists(p("macro.json")):
+    data["macro"] = json.load(open(p("macro.json")))
+
 # sinyal motoru + takip çıktısı (compute_signals.py -> track_signals.py)
 if os.path.exists(p("signals.json")):
     sg = json.load(open(p("signals.json")))

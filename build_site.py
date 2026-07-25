@@ -69,6 +69,7 @@ if os.path.exists(p("supabase.json")):
     out = (open(p("login_supabase_template.html"), encoding="utf-8").read()
            .replace("__SUPABASE_URL__", cfg["url"])
            .replace("__SUPABASE_ANON__", cfg["anon"])
+           .replace("__SHEETS_WEBHOOK__", cfg.get("sheetsWebhook", ""))
            .replace("__P_IV__", b64(iv))
            .replace("__P_CT__", b64(ct)))
 else:

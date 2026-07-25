@@ -184,6 +184,16 @@ def main():
     json.dump(out, open("technical.json", "w"))
     print(f"technical.json — {len(stocks)} hisse, rejim: {regime}, başarısız: {fails}")
 
+    # Makro varlıklar (altın + kurlar) burada tetiklenir çünkü CI iş akışına ayrı
+    # bir adım eklemek `workflow` yetkisi ister; eldeki jeton yalnızca `repo`.
+    # Yetki verildiğinde update.yml'e kendi adımı eklenip bu blok kaldırılmalı.
+    # Makro katmanı isteğe bağlıdır: hatası teknik göstergeleri düşürmemeli.
+    try:
+        import fetch_macro
+        fetch_macro.main()
+    except Exception as e:
+        print(f"uyarı: makro katmanı atlandı — {e}")
+
 
 if __name__ == "__main__":
     main()

@@ -1,7 +1,8 @@
 # NUUK BIST Radar
 
-BIST 100 hisseleri için temel analiz panosu. İçerik **AES-256-GCM ile şifrelidir**;
-yalnızca davet edilen e-posta + şifre çiftleri panoyu tarayıcıda çözebilir.
+BIST 100 hisseleri için temel analiz panosu. **Giriş ekranı kapalı**: pano
+herkese açık yayınlanır. Eski şifreli giriş modeli `build_site.py` içindeki
+`LOGIN_GATE = True` ile geri açılabilir (aşağıdaki anahtar bölümleri o mod içindir).
 
 ## Saatlik otomatik güncelleme
 
@@ -15,8 +16,8 @@ fix_data.py        →  USD/EUR raporlayanları güncel kurla TL'ye çevirir,
                       büyümeleri tarih eşleştirmeli hesaplar
 compute_signals.py →  SİNYAL MOTORU: kurulum tespiti (Kırılım/Geri çekilme/Momentum/
                       Trend devamı/Dönüş) → ATR planı → risk kapısı → RADAR/İZLE/GEÇ
-build_site.py      →  veriyi + sinyalleri şablona gömer, MASTER_KEY ile şifreler,
-                      saat damgalı index.html üretir
+build_site.py      →  veriyi + sinyalleri şablona gömer, saat damgalı index.html
+                      üretir (LOGIN_GATE açıksa MASTER_KEY ile şifreler)
 telegram_push.py   →  yalnızca YENİ RADAR sinyallerini Telegram'a iletir (state:
                       signals_sent.json ile dedup, saatlik spam olmaz)
 ```

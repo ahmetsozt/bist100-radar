@@ -1,4 +1,7 @@
-"""Build the encrypted, login-protected index.html (runs locally AND in CI).
+"""Build index.html (runs locally AND in CI).
+
+LOGIN_GATE = False (default): the dashboard is published as-is, no login screen.
+LOGIN_GATE = True: the old login page + AES-256-GCM encrypted dashboard.
 
 Inputs:
   bist100_final.json    fresh data (from fetch_bist100.py + fix_data.py)
@@ -7,7 +10,7 @@ Inputs:
   keys.json             public-safe user table: salted e-mail hashes + wrapped master key
   env MASTER_KEY        base64 32-byte AES key (GitHub Actions secret / local .master.secret)
 
-Output: index.html — login page + AES-256-GCM encrypted dashboard, stamped with build time.
+Output: index.html, stamped with build time.
 """
 import base64
 import datetime
@@ -21,16 +24,9 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 HERE = os.path.dirname(os.path.abspath(__file__))
 p = lambda name: os.path.join(HERE, name)
 
-master_b64 = os.environ.get("MASTER_KEY")
-if not master_b64 and os.path.exists(p(".master.secret")):
-    master_b64 = open(p(".master.secret")).read().strip()
-if not master_b64:
-    sys.exit("MASTER_KEY ortam değişkeni yok (veya yerelde .master.secret dosyası)")
-master = base64.b64decode(master_b64)
-if len(master) != 32:
-    sys.exit("MASTER_KEY 32 bayt olmalı")
+# Giriş ekranı kapalı: pano herkese açık yayınlanır. Geri açmak için True yap.
+LOGIN_GATE = False
 
-keys = json.load(open(p("keys.json")))
 data = json.load(open(p("bist100_final.json")))
 
 # teknik katman (fetch_technical.py çıktısı) — yoksa pano temel verilerle çalışmaya devam eder
@@ -61,6 +57,22 @@ data["asOf"] = f"{now.day} {TR_MONTHS[now.month]} {now.year}, {now:%H:%M} (saatl
 
 dashboard = (open(p("radar_template.html"), encoding="utf-8").read()
              .replace("/*__DATA__*/null", json.dumps(data, ensure_ascii=False)))
+
+if not LOGIN_GATE:
+    with open(p("index.html"), "w", encoding="utf-8") as f:
+        f.write(dashboard)
+    print(f"index.html yazıldı — giriş ekranı yok, {len(dashboard)//1024} KB, damga: {data['asOf']}")
+    sys.exit(0)
+
+master_b64 = os.environ.get("MASTER_KEY")
+if not master_b64 and os.path.exists(p(".master.secret")):
+    master_b64 = open(p(".master.secret")).read().strip()
+if not master_b64:
+    sys.exit("MASTER_KEY ortam değişkeni yok (veya yerelde .master.secret dosyası)")
+master = base64.b64decode(master_b64)
+if len(master) != 32:
+    sys.exit("MASTER_KEY 32 bayt olmalı")
+keys = json.load(open(p("keys.json")))
 
 iv = os.urandom(12)
 ct = AESGCM(master).encrypt(iv, dashboard.encode(), None)
